@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.lang.Nullable;
@@ -14,9 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.ewm.dto.stats.statsDto.EndpointHitDto;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 
@@ -33,35 +33,41 @@ public class StatsClient {
                 .build();
     }
 
-    public ResponseEntity<Object> addRequest(EndpointHitDto endpointHitDto) {
-        return post("", null, endpointHitDto);
+    public ResponseEntity<Object> addRequest(String ipResource, EndpointHitDto endpointHitDto) {
+        return post("/hit", ipResource, null, endpointHitDto);
     }
 
-    public ResponseEntity<Object> getStats(String start, String end, String[] uris, boolean unique) throws UnsupportedEncodingException {
+    public ResponseEntity<Object> getStats(String ipResource, String start, String end, String[] uris, boolean unique) {
 
-        Map<String, Object> parameters = Map.of(
-                "start", URLEncoder.encode(start, StandardCharsets.UTF_8.toString()),
-                "end", URLEncoder.encode(end, StandardCharsets.UTF_8.toString()),
-                "uris", uris,
-                "unique", unique
-        );
+        Map<String, Object> parameters = null;
         if (uris != null) {
-            return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
+            parameters = Map.of(
+                    "start", start,
+                    "end", end,
+                    "uris", uris,
+                    "unique", unique
+            );
+            return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", ipResource, parameters);
         } else {
-            return get("/stats?start={start}&end={end}&unique={unique}", parameters);
+            parameters = Map.of(
+                    "start", start,
+                    "end", end,
+                    "unique", unique
+            );
+            return get("/stats?start={start}&end={end}&unique={unique}", ipResource, parameters);
         }
     }
 
-    protected <T> ResponseEntity<Object> post(String path, @Nullable Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.POST, path, parameters, body);
+    protected <T> ResponseEntity<Object> post(String path, String ipResource, @Nullable Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.POST, path, ipResource, parameters, body);
     }
 
-    protected ResponseEntity<Object> get(String path, @Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
+    protected ResponseEntity<Object> get(String path, String ipResource, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, ipResource, parameters, null);
     }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body);
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, String ipResource, @Nullable Map<String, Object> parameters, @Nullable T body) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(ipResource));
 
         ResponseEntity<Object> statsServerResponse;
         try {
@@ -74,6 +80,16 @@ public class StatsClient {
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }
         return prepareGatewayResponse(statsServerResponse);
+    }
+
+    private HttpHeaders defaultHeaders(String ipResource) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        if (ipResource != null) {
+            headers.set("X-Stats-Resource-Ip", ipResource);
+        }
+        return headers;
     }
 
     private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {

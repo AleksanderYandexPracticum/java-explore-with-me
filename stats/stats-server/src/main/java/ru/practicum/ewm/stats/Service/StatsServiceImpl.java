@@ -10,6 +10,9 @@ import ru.practicum.ewm.stats.StatsMapper;
 import ru.practicum.ewm.stats.model.EndpointHit;
 import ru.practicum.ewm.stats.repository.StatsRepository;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -36,11 +39,18 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public List<ViewStats> getStats(String start, String end, String[] uris, boolean unique) {
 
-        LocalDateTime startTime = LocalDateTime.parse(start, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        LocalDateTime endTime = LocalDateTime.parse(end, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime startTime = null;
+        LocalDateTime endTime = null;
+        try {
+            startTime = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8.toString()), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            endTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8.toString()), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
         List<ViewStats> list = null;
 
-        if (unique == false) { //Нужно ли учитывать только уникальные посещения (только с уникальным ip)
+        if (!unique) { //Нужно ли учитывать только уникальные посещения (только с уникальным ip)
             if (uris != null) {
                 list = statsRepository.requestStats(startTime, endTime, uris);
             } else {

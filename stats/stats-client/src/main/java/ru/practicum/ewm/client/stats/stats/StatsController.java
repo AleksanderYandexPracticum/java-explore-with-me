@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.ewm.dto.stats.statsDto.EndpointHitDto;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 
 
@@ -23,19 +24,20 @@ public class StatsController {
 
 
     @PostMapping("/hit")
-    public ResponseEntity<Object> addUser(
-            @RequestBody EndpointHitDto endpointHitDto) {
+    public ResponseEntity<Object> addUser(HttpServletRequest request,
+                                          @RequestBody EndpointHitDto endpointHitDto) {
         log.info("Creating request {}, app={}, ip={}", endpointHitDto.getApp(), endpointHitDto.getIp());
-        return statsClient.addRequest(endpointHitDto);
+        return statsClient.addRequest(request.getRemoteAddr(), endpointHitDto);
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<Object> getAll(@RequestParam(name = "start") String start,
+    public ResponseEntity<Object> getAll(HttpServletRequest request,
+                                         @RequestParam(name = "start") String start,
                                          @RequestParam(name = "end") String end,
                                          @RequestParam(required = false, name = "uris") String[] uris,
                                          @RequestParam(name = "unique", defaultValue = "false") boolean unique) throws UnsupportedEncodingException {
         log.info("Get stats");
-        return statsClient.getStats(start, end, uris, unique);
+        String ipResource = request.getRemoteAddr();
+        return statsClient.getStats(ipResource, start, end, uris, unique);
     }
-
 }

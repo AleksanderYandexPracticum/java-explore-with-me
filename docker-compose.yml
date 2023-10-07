@@ -2,7 +2,6 @@ version: '3.1'
 services:
   stats-server:
     build: stats/stats-server
-    image: stats
     container_name: container_stats
     ports:
       - "9090:9090"
@@ -26,7 +25,6 @@ services:
 
   main-service:
     build: main-service
-    image: servermain
     container_name: container_servermain
     ports:
       - "8080:8080"

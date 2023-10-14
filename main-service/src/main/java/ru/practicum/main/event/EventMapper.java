@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 public class EventMapper {
     public static EventFullDto toEventFullDto(Event event) {
         return EventFullDto.builder()
+                .id(event.getId())
                 .annotation(event.getAnnotation())
                 .category(CategoryMapper.toCategoryDto(event.getCategory()))
                 .confirmedRequests(event.getConfirmedRequests())
@@ -72,20 +73,20 @@ public class EventMapper {
     public static Event toEvent(UpdateEventAdminRequest updateEventAdminRequest, Event oldEvent, Category category) {
         return Event.builder()
                 .id(oldEvent.getId())
-                .annotation(updateEventAdminRequest.getAnnotation())
-                .category(category)
+                .annotation(updateEventAdminRequest.getAnnotation() == null ? oldEvent.getAnnotation() : updateEventAdminRequest.getAnnotation())
+                .category(updateEventAdminRequest.getCategory() == null ? oldEvent.getCategory() : category)
                 .confirmedRequests(oldEvent.getConfirmedRequests())
                 .createdOn(oldEvent.getCreatedOn())
-                .description(updateEventAdminRequest.getDescription())
-                .eventDate(LocalDateTime.parse(updateEventAdminRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .description(updateEventAdminRequest.getDescription() == null ? oldEvent.getDescription() : updateEventAdminRequest.getDescription())
+                .eventDate(updateEventAdminRequest.getEventDate() == null ? oldEvent.getEventDate() : LocalDateTime.parse(updateEventAdminRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(oldEvent.getInitiator())
-                .location(updateEventAdminRequest.getLocation())
+                .location(updateEventAdminRequest.getLocation() == null ? oldEvent.getLocation() : updateEventAdminRequest.getLocation())
                 .paid(updateEventAdminRequest.isPaid())
-                .participantLimit(updateEventAdminRequest.getParticipantLimit())
+                .participantLimit(updateEventAdminRequest.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : updateEventAdminRequest.getParticipantLimit())
                 .requestModeration(updateEventAdminRequest.isRequestModeration())
                 .publishedOn(oldEvent.getPublishedOn())
-                .state(oldEvent.getState())///////////////////////////////////////////////////
-                .title(updateEventAdminRequest.getTitle())
+                .state(oldEvent.getState())
+                .title(updateEventAdminRequest.getTitle() == null ? oldEvent.getTitle() : updateEventAdminRequest.getTitle())
                 .views(oldEvent.getViews())
                 .build();
     }
@@ -93,22 +94,23 @@ public class EventMapper {
     public static Event toEvent(UpdateEventUserRequest updateEventUserRequest, Event oldEvent, Category category) {
         return Event.builder()
                 .id(oldEvent.getId())
-                .annotation(updateEventUserRequest.getAnnotation())
-                .category(category)
+                .annotation(updateEventUserRequest.getAnnotation() == null ? oldEvent.getAnnotation() : updateEventUserRequest.getAnnotation())
+                .category(updateEventUserRequest.getCategory() == null ? oldEvent.getCategory() : category)
                 .confirmedRequests(oldEvent.getConfirmedRequests())
                 .createdOn(oldEvent.getCreatedOn())
-                .description(updateEventUserRequest.getDescription())
-                .eventDate(LocalDateTime.parse(updateEventUserRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .description(updateEventUserRequest.getDescription() == null ? oldEvent.getDescription() : updateEventUserRequest.getDescription())
+                .eventDate(updateEventUserRequest.getEventDate() == null ? oldEvent.getEventDate() : LocalDateTime.parse(updateEventUserRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(oldEvent.getInitiator())
-                .location(updateEventUserRequest.getLocation())
+                .location(updateEventUserRequest.getLocation() == null ? oldEvent.getLocation() : updateEventUserRequest.getLocation())
                 .paid(updateEventUserRequest.isPaid())
-                .participantLimit(updateEventUserRequest.getParticipantLimit())
+                .participantLimit(updateEventUserRequest.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : updateEventUserRequest.getParticipantLimit())
                 .requestModeration(updateEventUserRequest.isRequestModeration())
                 .publishedOn(oldEvent.getPublishedOn())
-                .state(oldEvent.getState())///////////////////////////////////////////////////
-                .title(updateEventUserRequest.getTitle())
+                .state(oldEvent.getState())
+                .title(updateEventUserRequest.getTitle() == null ? oldEvent.getTitle() : updateEventUserRequest.getTitle())
                 .views(oldEvent.getViews())
                 .build();
+
     }
 
 }

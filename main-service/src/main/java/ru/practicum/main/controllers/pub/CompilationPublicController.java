@@ -22,12 +22,12 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/compilations")
 @Validated
-public class PublicCompilationController {
+public class CompilationPublicController {
 
     private final CompilationService compilationService;
 
     @Autowired
-    public PublicCompilationController(CompilationServiceImpl publicCompilationServiceImpl) {
+    public CompilationPublicController(CompilationServiceImpl publicCompilationServiceImpl) {
         this.compilationService = publicCompilationServiceImpl;
     }
 

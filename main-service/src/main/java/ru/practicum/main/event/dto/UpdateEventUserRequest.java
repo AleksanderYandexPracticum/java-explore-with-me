@@ -20,7 +20,6 @@ import javax.validation.constraints.Size;
 @EqualsAndHashCode
 @AllArgsConstructor
 public class UpdateEventUserRequest {
-    @NotBlank
     @Size(min = 20, message = "{validation.annotation.size.too_short}")
     @Size(max = 2000, message = "{validation.annotation.size.too_long}")
     private String annotation;
@@ -28,12 +27,10 @@ public class UpdateEventUserRequest {
     @Positive
     private Long category;
 
-    @NotBlank
     @Size(min = 20, message = "{validation.description.size.too_short}")
     @Size(max = 7000, message = "{validation.description.size.too_long}")
     private String description;
 
-    @NotBlank
     private String eventDate;
 
 
@@ -48,11 +45,9 @@ public class UpdateEventUserRequest {
 
     private boolean requestModeration;
 
-    @NotBlank
     private String stateAction;
 
 
-    @NotBlank
     @Size(min = 3, message = "{validation.title.size.too_short}")
     @Size(max = 120, message = "{validation.title.size.too_long}")
     private String title;

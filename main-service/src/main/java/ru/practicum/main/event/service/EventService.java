@@ -26,11 +26,11 @@ public interface EventService {
     EventRequestStatusUpdateResult updateEventRequestStatusPrivate(Long userId, Long eventId, EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest);
 
 
-    List<EventFullDto> getEventsAdmin(Long[] users, Long[] states, Long[] categories, String rangeStart, String rangeEnd, Integer from, Integer size);
+    List<EventFullDto> getEventsAdmin(List<Long> users, List<String> states, List<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size);
 
     EventFullDto updateEventAdmin(Long eventId, UpdateEventAdminRequest updateEventAdminRequest);
 
-    List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request, String text, Long[] categories, boolean paid,
+    List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request, String text, List<Long> categories, boolean paid,
                                                 String rangeStart, String rangeEnd, boolean onlyAvailable,
                                                 String sort, Integer from, Integer size);
 

@@ -1,28 +1,18 @@
-package ru.practicum.main.controllers.priv;
+package ru.practicum.main.controllers.pub;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main.category.dto.CategoryDto;
-import ru.practicum.main.category.dto.NewCategoryDto;
-import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.service.CategoryService;
 import ru.practicum.main.category.service.CategoryServiceImpl;
-import ru.practicum.main.event.dto.EventFullDto;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -31,12 +21,12 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/categories")
 @Validated
-public class PublicCategoryController {
+public class CategoryPublicController {
 
     private final CategoryService categoryService;
 
     @Autowired
-    public PublicCategoryController(CategoryServiceImpl categoryServiceImpl) {
+    public CategoryPublicController(CategoryServiceImpl categoryServiceImpl) {
         this.categoryService = categoryServiceImpl;
     }
 

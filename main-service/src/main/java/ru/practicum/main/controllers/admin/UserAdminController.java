@@ -27,12 +27,12 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/admin/users")
 @Validated
-public class AdminUserController {
+public class UserAdminController {
 
     private final UserService userService;
 
     @Autowired
-    public AdminUserController(UserServiceImpl userServiceImpl) {
+    public UserAdminController(UserServiceImpl userServiceImpl) {
         this.userService = userServiceImpl;
     }
 

@@ -24,12 +24,12 @@ import javax.validation.constraints.Positive;
 @RestController
 @RequestMapping(path = "/admin/compilations")
 @Validated
-public class AdminCompilationController {
+public class CompilationAdminController {
 
     private final CompilationService compilationService;
 
     @Autowired
-    public AdminCompilationController(CompilationServiceImpl compilationServiceImpl) {
+    public CompilationAdminController(CompilationServiceImpl compilationServiceImpl) {
         this.compilationService = compilationServiceImpl;
     }
 

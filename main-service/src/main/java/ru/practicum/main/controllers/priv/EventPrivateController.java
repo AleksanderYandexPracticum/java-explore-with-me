@@ -18,26 +18,27 @@ import ru.practicum.main.participation.dto.ParticipationRequestDto;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(path = "/users/{userId}/events")
+@RequestMapping("/users/{userId}/events")
 @Validated
-public class PrivateEventController {
+public class EventPrivateController {
 
     private final EventService eventService;
 
     @Autowired
-    public PrivateEventController(EventServiceImpl privateEventService) {
+    public EventPrivateController(EventServiceImpl privateEventService) {
         this.eventService = privateEventService;
     }
 
     @GetMapping
     public List<EventShortDto> getEvents(HttpServletRequest request,
-                                         @Positive @PathVariable Long userId,
+                                         @NotNull @Positive @PathVariable(required = false) Long userId,
                                          @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                          @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
@@ -53,13 +54,14 @@ public class PrivateEventController {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
         log.info("Create event with userId={}", userId);
-        return eventService.addEventPrivate(userId, newEventDto);
+        EventFullDto eventFullDto = eventService.addEventPrivate(userId, newEventDto);
+        return eventFullDto;
     }
 
     @GetMapping("/{eventId}")
     public List<EventFullDto> getEvents(HttpServletRequest request,
-                                        @Positive @PathVariable Long userId,
-                                        @Positive @PathVariable Long eventId,
+                                        @NotNull @Positive @PathVariable(required = false) Long userId,
+                                        @NotNull @Positive @PathVariable(required = false) Long eventId,
                                         @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                         @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
@@ -71,8 +73,8 @@ public class PrivateEventController {
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventUserRequest(HttpServletRequest request,
-                                               @Positive @PathVariable Long userId,
-                                               @Positive @PathVariable Long eventId,
+                                               @Positive @PathVariable(required = false) Long userId,
+                                               @Positive @PathVariable(required = false) Long eventId,
                                                @Valid @RequestBody UpdateEventUserRequest updateEventUserRequest) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());

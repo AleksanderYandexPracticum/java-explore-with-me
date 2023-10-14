@@ -10,48 +10,48 @@ import ru.practicum.main.event.service.EventServiceImpl;
 import ru.practicum.main.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(path = "/admin/events")
+@RequestMapping("/admin/events")
 @Validated
-public class AdminEventController {
+public class EventAdminController {
 
     private final EventService eventService;
 
     @Autowired
-    public AdminEventController(EventServiceImpl eventServiceImpl) {
+    public EventAdminController(EventServiceImpl eventServiceImpl) {
         this.eventService = eventServiceImpl;
     }
 
     @GetMapping
     public List<EventFullDto> getEventsAdmin(HttpServletRequest request,
-                                             @NotEmpty @RequestParam Long[] users,
-                                             @NotEmpty @RequestParam Long[] states,
-                                             @NotEmpty @RequestParam Long[] categories,
-                                             @NotBlank @RequestParam String rangeStart,
-                                             @NotBlank @RequestParam String rangeEnd,
+                                             @RequestParam(required = false) List<Long> users,
+                                             @RequestParam(required = false) List<String> states,
+                                             @RequestParam(required = false) List<Long> categories,
+                                             @RequestParam(required = false) String rangeStart,
+                                             @RequestParam(required = false) String rangeEnd,
                                              @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                              @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
         log.info("Get user with userId={}, from={}, size={}", users.toString(), from, size);
-        return eventService.getEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+        List<EventFullDto> list = eventService.getEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+        return list;
     }
 
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventAdmin(HttpServletRequest request,
-                                         @Positive @PathVariable Long eventId,
-                                         @Valid @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
+                                         @NotNull @PathVariable(required = false) Long eventId,
+                                         @NotNull @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        return eventService.updateEventAdmin(eventId, updateEventAdminRequest);
+        EventFullDto eventFullDto= eventService.updateEventAdmin(eventId, updateEventAdminRequest);
+        return eventFullDto;
     }
 }

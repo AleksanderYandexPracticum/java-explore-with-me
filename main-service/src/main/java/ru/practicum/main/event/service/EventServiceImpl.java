@@ -28,6 +28,8 @@ import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.exception.OverflowParticipiantLimitException;
 import ru.practicum.main.exception.StateArgumentException;
 import ru.practicum.main.exception.StatusPerticipationRequestException;
+import ru.practicum.main.location.model.Location;
+import ru.practicum.main.location.repository.LocationRepository;
 import ru.practicum.main.participation.ParticipationMapper;
 import ru.practicum.main.participation.dto.ParticipationRequestDto;
 import ru.practicum.main.participation.model.ParticipationRequest;
@@ -51,17 +53,21 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRepository participationRepository;
+    private final LocationRepository locationRepository;
     private final StatsClient statsClient;
 
     @Autowired
     public EventServiceImpl(EventRepository eventRepository,
                             CategoryRepository categoryRepository,
                             UserRepository userRepository,
-                            ParticipationRepository participationRepository, StatsClient statsClient) {
+                            ParticipationRepository participationRepository,
+                            LocationRepository locationRepository,
+                            StatsClient statsClient) {
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
         this.participationRepository = participationRepository;
+        this.locationRepository = locationRepository;
 
         this.statsClient = statsClient;
     }
@@ -88,10 +94,18 @@ public class EventServiceImpl implements EventService {
         if (start.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new EventDateException("Timeeeeeeeeeeeeeeeeeeeeee");
         }
+        Location location = locationRepository.save(newEventDto.getLocation());
+        newEventDto.setLocation(location);
+
         Category category = categoryRepository.getById(newEventDto.getCategory());
+
         User user = userRepository.getUserById(userId);
+
         Event event = EventMapper.toEvent(newEventDto, user, category);
-        return EventMapper.toEventFullDto(eventRepository.save(event));
+        event.setPublishedOn(start);
+        event.setConfirmedRequests(0L);
+        EventFullDto eventFulldto = EventMapper.toEventFullDto(eventRepository.save(event));
+        return eventFulldto;
     }
 
     @Transactional(readOnly = true)
@@ -123,7 +137,7 @@ public class EventServiceImpl implements EventService {
             throw new StateArgumentException("Only pending or canceled events can be changed");
         }
 
-        LocalDateTime start = LocalDateTime.parse(updateEventUserRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime start = oldEvent.getEventDate();
         if (start.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new EventDateException("Time start" + start + "before eventDate + 2 Hours");
         }
@@ -132,20 +146,8 @@ public class EventServiceImpl implements EventService {
                 oldEvent.getCategory() : categoryRepository.getById(updateEventUserRequest.getCategory());
         Event upEvent = EventMapper.toEvent(updateEventUserRequest, oldEvent, newCategory);
 
-
-        upEvent.setAnnotation(upEvent.getAnnotation() == null ? oldEvent.getAnnotation() : upEvent.getAnnotation());
-        upEvent.setDescription(upEvent.getDescription() == null ? oldEvent.getDescription() : upEvent.getDescription());
-        upEvent.setEventDate(upEvent.getEventDate() == null ? oldEvent.getEventDate() : upEvent.getEventDate());
-        upEvent.setLocation(upEvent.getLocation() == null ? oldEvent.getLocation() : upEvent.getLocation());
-        upEvent.setPaid(upEvent.isPaid());
-        upEvent.setParticipantLimit(upEvent.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : upEvent.getParticipantLimit());
-        upEvent.setRequestModeration(upEvent.isRequestModeration());
-
-
-        upEvent.setState(State.valueOf(updateEventUserRequest.getStateAction().equals(StateAction.SEND_TO_REVIEW) ?
-                State.PENDING.toString() : State.CANCELED.toString()));
-
-        upEvent.setTitle(upEvent.getTitle() == null ? oldEvent.getTitle() : upEvent.getTitle());
+        upEvent.setState(StateAction.valueOf(updateEventUserRequest.getStateAction()).equals(StateAction.SEND_TO_REVIEW) ?
+                State.PENDING : State.CANCELED);
 
         upEvent.setId(eventId);
 
@@ -182,6 +184,7 @@ public class EventServiceImpl implements EventService {
             List<ParticipationRequestDto> listDto = list.stream().map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
             EventRequestStatusUpdateResult eventRequestStatusUpdateResult = new EventRequestStatusUpdateResult(
                     listDto, new ArrayList<>());
+            event.setConfirmedRequests(event.getConfirmedRequests() + list.size());
 
 //            list = participationRepository.getParticipationRequestByIdIn(eventRequestStatusUpdateRequest.getRequestIds())
 //                    .stream()
@@ -198,11 +201,13 @@ public class EventServiceImpl implements EventService {
         }
 
         List<ParticipationRequest> listPending = new ArrayList<>();
-        List<ParticipationRequest> rejectedList = new ArrayList<>();
+        List<ParticipationRequest> listOld = new ArrayList<>();
+        List<ParticipationRequest> listRejected = new ArrayList<>();
 
         for (ParticipationRequest participationRequest : list) {
             if (participationRequest.getStatus().equals(Status.PENDING)) {
 
+                listOld.add(participationRequest);
                 participationRequest.setStatus(status);
                 listPending.add(participationRequest);
 
@@ -210,27 +215,45 @@ public class EventServiceImpl implements EventService {
                 event.setConfirmedRequests(event.getConfirmedRequests() + 1);
                 eventRepository.save(event);
             } else {
-
-                rejectedList.add(participationRequest);
+                listRejected.add(participationRequest);
             }
 
             if (event.getParticipantLimit().equals(event.getConfirmedRequests())) {
+                if (listOld.size() != list.size()) {
+                    list.removeAll(listOld);
+                    for (ParticipationRequest pRequest : list) {
+                        pRequest.setStatus(Status.REJECTED);
+                        participationRepository.save(pRequest);
+                    }
+                    List<ParticipationRequestDto> listPendingDto = listPending
+                            .stream()
+                            .map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
+                    List<ParticipationRequestDto> rejectedListDto = list
+                            .stream()
+                            .map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
 
+                    return new EventRequestStatusUpdateResult(listPendingDto, rejectedListDto);
 
-                for (ParticipationRequest pRequest : rejectedList) {
-                    pRequest.setStatus(Status.REJECTED);
-                    participationRepository.save(pRequest);
+                } else {
+                    List<ParticipationRequestDto> listPendingDto = listPending
+                            .stream()
+                            .map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
+                    List<ParticipationRequestDto> rejectedListDto = new ArrayList<>();
+                    return new EventRequestStatusUpdateResult(listPendingDto, rejectedListDto);
                 }
             }
         }
+
         if (listPending.size() == 0) {
             throw new StatusPerticipationRequestException("The status Request NOT PENDING"); // 409 ЛИМИТ///////////////////////////////////
         }
 
+
         List<ParticipationRequestDto> listPendingDto = listPending
                 .stream()
                 .map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
-        List<ParticipationRequestDto> rejectedListDto = listPending
+
+        List<ParticipationRequestDto> rejectedListDto = listRejected
                 .stream()
                 .map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
 
@@ -240,21 +263,110 @@ public class EventServiceImpl implements EventService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<EventFullDto> getEventsAdmin(Long[] users, Long[] states, Long[] categories,
+    public List<EventFullDto> getEventsAdmin(List<Long> users, List<String> states, List<Long> categories,
                                              String rangeStart, String rangeEnd, Integer from, Integer size) {
 
+        List<EventFullDto> list = null;
         Integer pageNumber = from / size;
+        List<State> stateEnum = states.stream().map((s) -> State.valueOf(s)).collect(Collectors.toList());
+
         Pageable pageable = PageRequest.of(pageNumber, size);
-        LocalDateTime start = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        LocalDateTime end = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        if (start.isAfter(end)) {
-            throw new IllegalArgumentException();
+        if (rangeStart == null && rangeEnd == null) {
+            if (users == null && states == null && categories == null) {
+                list = new ArrayList<>();
+
+            } else if (users == null && states == null && categories != null) {
+                list = eventRepository.getEventsByCategoryIdIn(categories, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users == null && states != null && categories == null) {
+                list = eventRepository.getEventsByStateIn(stateEnum, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states == null && categories == null) {
+                list = eventRepository.getEventsByInitiatorIdIn(users, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users == null && states != null && categories != null) {
+                list = eventRepository.getEventsByCategoryIdInAndStateIn(categories, stateEnum, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states != null && categories == null) {
+                list = eventRepository.getEventsByInitiatorIdInAndStateIn(users, stateEnum, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states == null && categories != null) {
+                list = eventRepository.getEventsByInitiatorIdInAndCategoryIdIn(users, categories, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else {
+                list = eventRepository.getEventsByInitiatorIdInAndStateInAndCategoryIdIn(users, stateEnum, categories, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+            }
+        } else {
+            LocalDateTime start = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime end = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            if (start.isAfter(end)) {
+                throw new IllegalArgumentException();
+            }
+            if (users == null && states == null && categories == null) {
+                list = eventRepository.getEventsByEventDateAfterAndEventDateBefore(start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+                ;
+
+            } else if (users == null && states == null && categories != null) {
+                list = eventRepository.getEventsByCategoryIdInAndEventDateAfterAndEventDateBefore(
+                        categories, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users == null && states != null && categories == null) {
+                list = eventRepository.getEventsByStateInAndEventDateAfterAndEventDateBefore(
+                        stateEnum, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states == null && categories == null) {
+                list = eventRepository.getEventsByInitiatorIdInAndEventDateAfterAndEventDateBefore(
+                        users, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users == null && states != null && categories != null) {
+                list = eventRepository.getEventsByStateInAndCategoryIdInAndEventDateAfterAndEventDateBefore(
+                        stateEnum, categories, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states != null && categories == null) {
+                list = eventRepository.getEventsByInitiatorIdInAndStateInAndEventDateAfterAndEventDateBefore(
+                        users, stateEnum, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states == null && categories != null) {
+                list = eventRepository.getEventsByInitiatorIdInAndCategoryIdInAndEventDateAfterAndEventDateBefore(
+                        users, categories, start, end, pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
+
+            } else if (users != null && states != null && categories != null)
+                list = eventRepository.getEventsByInitiatorIdInAndStateInAndCategoryIdInAndEventDateAfterAndEventDateBefore(
+                        users, stateEnum, categories, start, end, pageable)
+                        .stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
         }
 
-        return eventRepository.getEventsByInitiatorInAndStateInAndCategoryInAndEventDateAfterAndEventDateBefore(users, states, categories, start, end, pageable)
-                .stream()
-                .map((event) -> EventMapper.toEventFullDto(event))
-                .collect(Collectors.toList());
+        return list;
     }
 
     @Transactional
@@ -265,15 +377,15 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("The required object was not found.");
         }
 
-        LocalDateTime start = LocalDateTime.parse(updateEventAdminRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime start = oldEvent.getEventDate();
         if (start.isBefore(LocalDateTime.now().plusHours(1))) {
             throw new EventDateException("Time start" + start + "before eventDate + 1 Hours");
         }
 
-        if (!oldEvent.getState().equals(State.PENDING) && updateEventAdminRequest.getStateAction().equals(StateAction.PUBLISHED_EVENT)) {
+        if (!oldEvent.getState().equals(State.PENDING) && updateEventAdminRequest.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
             throw new StateArgumentException("Cannot publish the event because it's not in the right state: PUBLISHED OR CANCELED");
         }
-        if (oldEvent.getState().equals(State.PUBLISHED) && updateEventAdminRequest.getStateAction().equals(StateAction.REJECTED_EVENT)) {
+        if (oldEvent.getState().equals(State.PUBLISHED) && updateEventAdminRequest.getStateAction().equals(StateAction.REJECT_EVENT)) {
             throw new StateArgumentException("Cannot reject the event because it's not in the right state: PUBLISHED");
         }
 
@@ -282,20 +394,8 @@ public class EventServiceImpl implements EventService {
                 oldEvent.getCategory() : categoryRepository.getById(updateEventAdminRequest.getCategory());
         Event upEvent = EventMapper.toEvent(updateEventAdminRequest, oldEvent, newCategory);
 
-
-        upEvent.setAnnotation(upEvent.getAnnotation() == null ? oldEvent.getAnnotation() : upEvent.getAnnotation());
-        upEvent.setDescription(upEvent.getDescription() == null ? oldEvent.getDescription() : upEvent.getDescription());
-        upEvent.setEventDate(upEvent.getEventDate() == null ? oldEvent.getEventDate() : upEvent.getEventDate());
-        upEvent.setLocation(upEvent.getLocation() == null ? oldEvent.getLocation() : upEvent.getLocation());
-        upEvent.setPaid(upEvent.isPaid());
-        upEvent.setParticipantLimit(upEvent.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : upEvent.getParticipantLimit());
-        upEvent.setRequestModeration(upEvent.isRequestModeration());
-
-
-        upEvent.setState(State.valueOf(updateEventAdminRequest.getStateAction().equals(StateAction.PUBLISHED_EVENT) ?
-                State.PUBLISHED.toString() : State.CANCELED.toString()));
-
-        upEvent.setTitle(upEvent.getTitle() == null ? oldEvent.getTitle() : upEvent.getTitle());
+        upEvent.setState(StateAction.valueOf(updateEventAdminRequest.getStateAction()).equals(StateAction.PUBLISH_EVENT) ?
+                State.PUBLISHED : State.CANCELED);
 
         upEvent.setId(eventId);
 
@@ -306,28 +406,47 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request, String text, Long[] categories, boolean paid,
+    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request, String text, List<Long> categories, boolean paid,
                                                        String rangeStart, String rangeEnd, boolean onlyAvailable,
                                                        String sort, Integer from, Integer size) {
         Integer pageNumber = from / size;
         Pageable pageable = PageRequest.of(pageNumber, size);
         List<Event> list;
         LocalDateTime timeNow = LocalDateTime.now();
+        text = "'%" + text + "%'";
 
         if (rangeStart == null && rangeEnd == null) {
-            if (sort.equals("EVENT_DATE")) {
+            if (sort != null && sort.equals("EVENT_DATE")) {
                 if (onlyAvailable) {
                     list = eventRepository.getAllEventSortEventDateParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             timeNow,
                             text,
                             pageable);
                 } else {
                     list = eventRepository.getAllEventSortEventDateNoLimitParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                            State.PUBLISHED.toString(),
+                            categories,
+                            paid,
+                            timeNow,
+                            text,
+                            pageable);
+                }
+            } else if (sort != null && sort.equals("VIEWS")) {
+                if (onlyAvailable) {
+                    list = eventRepository.getAllEventSortViewsParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
+                            paid,
+                            timeNow,
+                            text,
+                            pageable);
+                } else {
+                    list = eventRepository.getAllEventSortViewsNoLimitParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             timeNow,
                             text,
@@ -335,17 +454,17 @@ public class EventServiceImpl implements EventService {
                 }
             } else {
                 if (onlyAvailable) {
-                    list = eventRepository.getAllEventSortViewsParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                    list = eventRepository.getAllEventSortNullParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             timeNow,
                             text,
                             pageable);
                 } else {
-                    list = eventRepository.getAllEventSortViewsNoLimitParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                    list = eventRepository.getAllEventSortNullNoLimitParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             timeNow,
                             text,
@@ -356,11 +475,11 @@ public class EventServiceImpl implements EventService {
         } else {
             LocalDateTime startTime = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             LocalDateTime endTime = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            if (sort.equals("EVENT_DATE")) {
+            if (sort != null && sort.equals("EVENT_DATE")) {
                 if (onlyAvailable) {
                     list = eventRepository.getAllEventSortEventDatePeriodDateParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             startTime,
                             endTime,
@@ -368,8 +487,28 @@ public class EventServiceImpl implements EventService {
                             pageable);
                 } else {
                     list = eventRepository.getAllEventSortEventDateNoLimitPeriodDateParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                            State.PUBLISHED.toString(),
+                            categories,
+                            paid,
+                            startTime,
+                            endTime,
+                            text,
+                            pageable);
+                }
+            } else if (sort != null && sort.equals("VIEWS")) {
+                if (onlyAvailable) {
+                    list = eventRepository.getAllEventSortViewsPeriodDateParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
+                            paid,
+                            startTime,
+                            endTime,
+                            text,
+                            pageable);
+                } else {
+                    list = eventRepository.getAllEventSortViewsNoLimitPeriodDateParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             startTime,
                             endTime,
@@ -378,18 +517,18 @@ public class EventServiceImpl implements EventService {
                 }
             } else {
                 if (onlyAvailable) {
-                    list = eventRepository.getAllEventSortViewsPeriodDateParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                    list = eventRepository.getAllEventSortNullPeriodDateParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             startTime,
                             endTime,
                             text,
                             pageable);
                 } else {
-                    list = eventRepository.getAllEventSortViewsNoLimitPeriodDateParameters(
-                            State.PUBLISHED,
-                            Arrays.asList(categories),
+                    list = eventRepository.getAllEventSortNullNoLimitPeriodDateParameters(
+                            State.PUBLISHED.toString(),
+                            categories,
                             paid,
                             startTime,
                             endTime,

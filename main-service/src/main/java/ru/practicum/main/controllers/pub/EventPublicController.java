@@ -14,34 +14,35 @@ import ru.practicum.main.event.service.EventService;
 import ru.practicum.main.event.service.EventServiceImpl;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(path = "/events")
+@RequestMapping("/events")
 @Validated
-public class PublicEventController {
+public class EventPublicController {
 
     private final EventService eventService;
 
 
     @Autowired
-    public PublicEventController(EventServiceImpl eventServiceImpl) {
+    public EventPublicController(EventServiceImpl eventServiceImpl) {
         this.eventService = eventServiceImpl;
 
     }
 
     @GetMapping
-    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request,
-                                                       @RequestParam String text,
-                                                       @RequestParam Long[] categories,
-                                                       @RequestParam boolean paid,
-                                                       @RequestParam String rangeStart,
-                                                       @RequestParam String rangeEnd,
+    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request,  //(required = false)
+                                                       @NotBlank @RequestParam String text,
+                                                       @RequestParam(required = false) List<Long> categories,
+                                                       @RequestParam(required = false) boolean paid,
+                                                       @RequestParam(required = false) String rangeStart,
+                                                       @RequestParam(required = false) String rangeEnd,
                                                        @RequestParam(defaultValue = "false") boolean onlyAvailable,
-                                                       @RequestParam String sort,
+                                                       @RequestParam(required = false) String sort,
                                                        @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                        @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",

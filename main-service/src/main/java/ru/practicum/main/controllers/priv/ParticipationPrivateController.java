@@ -15,7 +15,6 @@ import ru.practicum.main.participation.service.ParticipationService;
 import ru.practicum.main.participation.service.ParticipationServiceImpl;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
@@ -23,13 +22,13 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/users/{userId}/requests")
-//@Validated
-public class PrivateParticipationController {
+@Validated
+public class ParticipationPrivateController {
 
     private final ParticipationService participationService;
 
     @Autowired
-    public PrivateParticipationController(ParticipationServiceImpl participationServiceImpl) {
+    public ParticipationPrivateController(ParticipationServiceImpl participationServiceImpl) {
         this.participationService = participationServiceImpl;
     }
 
@@ -43,9 +42,9 @@ public class PrivateParticipationController {
     }
 
     @PostMapping
-    public ParticipationRequestDto addParticipationRequestPrivate(HttpServletRequest request,//@NotNull @Positive
-                                                                  @PathVariable Long userId,
-                                                                  @RequestParam(required = false, name = "eventId") Long eventId) {
+    public ParticipationRequestDto addParticipationRequestPrivate(HttpServletRequest request,
+                                                                  @NotNull @Positive @PathVariable(required = false) Long userId,
+                                                                  @NotNull @Positive @RequestParam(required = false) Long eventId) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
         log.info("Create ParticipationRequest with userId={}, eventId={}", userId, eventId);

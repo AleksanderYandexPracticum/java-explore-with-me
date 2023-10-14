@@ -23,12 +23,12 @@ import javax.validation.constraints.Positive;
 @RestController
 @RequestMapping(path = "/admin/categories")
 @Validated
-public class AdminCategoryController {
+public class CategoryAdminController {
 
     private final CategoryService categoryService;
 
     @Autowired
-    public AdminCategoryController(CategoryServiceImpl adminCategoryServiceImpl) {
+    public CategoryAdminController(CategoryServiceImpl adminCategoryServiceImpl) {
         this.categoryService = adminCategoryServiceImpl;
     }
 

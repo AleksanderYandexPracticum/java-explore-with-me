@@ -60,7 +60,7 @@ public class ParticipationServiceImpl implements ParticipationService {
             throw new RepeatParticipationRequestException("Request self userId ");
         } else if (!event.getState().equals(State.PUBLISHED)) {
             throw new RepeatParticipationRequestException("Request not PUBLISED ");
-        } else if (event.getConfirmedRequests().equals(event.getParticipantLimit())) {
+        } else if (event.getConfirmedRequests() != null && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
             throw new RepeatParticipationRequestException("Request overflow ParticipantLimit ");
         }
         List<ParticipationRequest> participationRequestList = participationRepository.getParticipationRequestsByRequesterAndEvent(userId, eventId);
@@ -75,9 +75,10 @@ public class ParticipationServiceImpl implements ParticipationService {
                 .requester(userId)
                 .status(event.isRequestModeration() ? Status.PENDING : Status.CONFIRMED)
                 .build();
-
+        ParticipationRequest newParticipationRequest = participationRepository.save(participationRequest);
         ParticipationRequestDto participationRequestDto = ParticipationMapper
-                .toParticipationRequestDto(participationRepository.save(participationRequest));
+                .toParticipationRequestDto(newParticipationRequest);
+        participationRequestDto.setId(newParticipationRequest.getId());
 
         return participationRequestDto;
     }

@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.client.stats.stats.StatsClient;
 import ru.practicum.ewm.dto.stats.statsDto.EndpointHitDto;
+import ru.practicum.ewm.dto.stats.statsDto.ViewStats;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.EventMapper;
@@ -41,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,7 +93,7 @@ public class EventServiceImpl implements EventService {
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         if (start.isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new EventDateException("Timeeeeeeeeeeeeeeeeeeeeee");
+            throw new IllegalArgumentException("Incorrectly  time");
         }
         Location location = locationRepository.save(newEventDto.getLocation());
         newEventDto.setLocation(location);
@@ -141,14 +142,25 @@ public class EventServiceImpl implements EventService {
         if (start.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new EventDateException("Time start" + start + "before eventDate + 2 Hours");
         }
+        if (updateEventUserRequest.getEventDate() != null) {
+            LocalDateTime newEventDate = LocalDateTime.parse(updateEventUserRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            if (newEventDate.isBefore(start) || newEventDate.isEqual(start)) {
+                throw new IllegalArgumentException("Time start" + start + "before or equals eventDate");
+            }
+        }
+        if (updateEventUserRequest.getLocation() != null) {
+            Location location = locationRepository.save(updateEventUserRequest.getLocation());
+            updateEventUserRequest.setLocation(location);
+        }
 
         Category newCategory = updateEventUserRequest.getCategory() == null ?
                 oldEvent.getCategory() : categoryRepository.getById(updateEventUserRequest.getCategory());
         Event upEvent = EventMapper.toEvent(updateEventUserRequest, oldEvent, newCategory);
 
-        upEvent.setState(StateAction.valueOf(updateEventUserRequest.getStateAction()).equals(StateAction.SEND_TO_REVIEW) ?
-                State.PENDING : State.CANCELED);
-
+        if (updateEventUserRequest.getStateAction() != null) {
+            upEvent.setState(StateAction.valueOf(updateEventUserRequest.getStateAction()).equals(StateAction.SEND_TO_REVIEW) ?
+                    State.PENDING : State.CANCELED);
+        }
         upEvent.setId(eventId);
 
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(upEvent));
@@ -268,13 +280,16 @@ public class EventServiceImpl implements EventService {
 
         List<EventFullDto> list = null;
         Integer pageNumber = from / size;
-        List<State> stateEnum = states.stream().map((s) -> State.valueOf(s)).collect(Collectors.toList());
-
+        List<State> stateEnum = null;
+        if (states != null) {
+            stateEnum = states.stream().map((s) -> State.valueOf(s)).collect(Collectors.toList());
+        }
         Pageable pageable = PageRequest.of(pageNumber, size);
         if (rangeStart == null && rangeEnd == null) {
             if (users == null && states == null && categories == null) {
-                list = new ArrayList<>();
-
+                list = eventRepository.findAll(pageable).stream()
+                        .map((event) -> EventMapper.toEventFullDto(event))
+                        .collect(Collectors.toList());
             } else if (users == null && states == null && categories != null) {
                 list = eventRepository.getEventsByCategoryIdIn(categories, pageable).stream()
                         .map((event) -> EventMapper.toEventFullDto(event))
@@ -378,25 +393,37 @@ public class EventServiceImpl implements EventService {
         }
 
         LocalDateTime start = oldEvent.getEventDate();
-        if (start.isBefore(LocalDateTime.now().plusHours(1))) {
+        if (start.isAfter(oldEvent.getPublishedOn().plusHours(1))) {
             throw new EventDateException("Time start" + start + "before eventDate + 1 Hours");
         }
+        if (updateEventAdminRequest.getEventDate() != null) {
+            LocalDateTime newEventDate = LocalDateTime.parse(updateEventAdminRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime currentTime = LocalDateTime.now();
+            if (newEventDate.isBefore(currentTime) || newEventDate.isEqual(currentTime)) {
+                throw new IllegalArgumentException("Time start" + start + "before or equals eventDate");
+            }
+        }
 
-        if (!oldEvent.getState().equals(State.PENDING) && updateEventAdminRequest.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
+        if (!oldEvent.getState().equals(State.PENDING) && updateEventAdminRequest.getStateAction().equals("PUBLISH_EVENT")) {
             throw new StateArgumentException("Cannot publish the event because it's not in the right state: PUBLISHED OR CANCELED");
         }
-        if (oldEvent.getState().equals(State.PUBLISHED) && updateEventAdminRequest.getStateAction().equals(StateAction.REJECT_EVENT)) {
+        if (oldEvent.getState().equals(State.PUBLISHED) && updateEventAdminRequest.getStateAction().equals("REJECT_EVENT")) {
             throw new StateArgumentException("Cannot reject the event because it's not in the right state: PUBLISHED");
         }
 
+        if (updateEventAdminRequest.getLocation() != null) {
+            Location location = locationRepository.save(updateEventAdminRequest.getLocation());
+            updateEventAdminRequest.setLocation(location);
+        }
 
         Category newCategory = updateEventAdminRequest.getCategory() == null ?
                 oldEvent.getCategory() : categoryRepository.getById(updateEventAdminRequest.getCategory());
         Event upEvent = EventMapper.toEvent(updateEventAdminRequest, oldEvent, newCategory);
 
-        upEvent.setState(StateAction.valueOf(updateEventAdminRequest.getStateAction()).equals(StateAction.PUBLISH_EVENT) ?
-                State.PUBLISHED : State.CANCELED);
-
+        if (updateEventAdminRequest.getStateAction() != null) {
+            upEvent.setState(StateAction.valueOf(updateEventAdminRequest.getStateAction()).equals("PUBLISH_EVENT") ?
+                    State.PUBLISHED : State.CANCELED);
+        }
         upEvent.setId(eventId);
 
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(upEvent));
@@ -409,12 +436,14 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request, String text, List<Long> categories, boolean paid,
                                                        String rangeStart, String rangeEnd, boolean onlyAvailable,
                                                        String sort, Integer from, Integer size) {
+
         Integer pageNumber = from / size;
         Pageable pageable = PageRequest.of(pageNumber, size);
         List<Event> list;
         LocalDateTime timeNow = LocalDateTime.now();
-        text = "'%" + text + "%'";
-
+        if (text != null) {
+            text = "'%" + text + "%'";
+        }
         if (rangeStart == null && rangeEnd == null) {
             if (sort != null && sort.equals("EVENT_DATE")) {
                 if (onlyAvailable) {
@@ -454,27 +483,79 @@ public class EventServiceImpl implements EventService {
                 }
             } else {
                 if (onlyAvailable) {
-                    list = eventRepository.getAllEventSortNullParameters(
-                            State.PUBLISHED.toString(),
-                            categories,
-                            paid,
-                            timeNow,
-                            text,
-                            pageable);
+                    if (categories != null && text != null) {
+                        list = eventRepository.getAllEventSortNullParameters(
+                                State.PUBLISHED.toString(),
+                                categories,
+                                paid,
+                                timeNow,
+                                text,
+                                pageable);
+
+                    } else if (text == null && categories != null) {
+                        list = eventRepository.getAllEventNotTextSortNullParameters(
+                                State.PUBLISHED.toString(),
+                                categories,
+                                paid,
+                                timeNow,
+                                pageable);
+
+                    } else if (categories == null && text != null) {
+                        list = eventRepository.getAllEventNotCategorySortNullParameters(
+                                State.PUBLISHED.toString(),
+                                paid,
+                                timeNow,
+                                text,
+                                pageable);
+                    } else {
+                        list = eventRepository.getAllEventNoParameters(
+                                State.PUBLISHED.toString(),
+                                paid,
+                                timeNow,
+                                pageable);
+                    }
                 } else {
-                    list = eventRepository.getAllEventSortNullNoLimitParameters(
-                            State.PUBLISHED.toString(),
-                            categories,
-                            paid,
-                            timeNow,
-                            text,
-                            pageable);
+                    if (categories != null && text != null) {
+                        list = eventRepository.getAllEventSortNullNoLimitParameters(
+                                State.PUBLISHED.toString(),
+                                categories,
+                                paid,
+                                timeNow,
+                                text,
+                                pageable);
+                    } else if (text == null && categories != null) {
+                        list = eventRepository.getAllEventNotTextSortNullNoLimitParameters(
+                                State.PUBLISHED.toString(),
+                                categories,
+                                paid,
+                                timeNow,
+                                pageable);
+
+                    } else if (categories == null && text != null) {
+                        list = eventRepository.getAllEventNotCategorySortNullNoLimitParameters(
+                                State.PUBLISHED.toString(),
+                                paid,
+                                timeNow,
+                                text,
+                                pageable);
+
+                    } else {
+                        list = eventRepository.getAllEventNoLimitParameters(
+                                State.PUBLISHED.toString(),
+                                paid,
+                                timeNow,
+                                pageable);
+                    }
                 }
             }
 
         } else {
             LocalDateTime startTime = LocalDateTime.parse(rangeStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             LocalDateTime endTime = LocalDateTime.parse(rangeEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            if (startTime.isAfter(endTime)) {
+                throw new IllegalArgumentException("Time start" + startTime + " after end " + endTime);
+            }
+
             if (sort != null && sort.equals("EVENT_DATE")) {
                 if (onlyAvailable) {
                     list = eventRepository.getAllEventSortEventDatePeriodDateParameters(
@@ -561,19 +642,24 @@ public class EventServiceImpl implements EventService {
         if (event == null) {
             throw new NotFoundException("The required object was not found.");
         }
+        String timeStart = event.getCreatedOn().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String[] uris = {request.getRequestURI()};
 
+        ResponseEntity<Object> response = statsClient.getStats(request.getRequestURI(), timeStart, timeNow, uris, true);
+        List<ViewStats> resp = (List<ViewStats>) response.getBody();
+        if (resp.size() == 0) {//////////////////////////
+            event.setViews(event.getViews() + 1);
+            eventRepository.save(event);
+        }
 
-        LocalDateTime timeNow = LocalDateTime.now();
         EndpointHitDto endpointHitDto = new EndpointHitDto(null,
                 "main-service",
                 request.getRequestURI(),
                 request.getRemoteAddr(),
-                timeNow.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                timeNow);
 
         statsClient.addRequest(request.getRemoteAddr(), endpointHitDto);
-
-        event.setViews(event.getViews() + 1);
-        eventRepository.save(event);
 
         return EventMapper.toEventFullDto(event);
     }

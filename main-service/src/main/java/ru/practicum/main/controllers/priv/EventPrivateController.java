@@ -2,6 +2,7 @@ package ru.practicum.main.controllers.priv;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main.event.dto.*;
 import ru.practicum.main.event.service.EventService;
@@ -48,6 +50,7 @@ public class EventPrivateController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto addEvent(HttpServletRequest request,
                                  @Positive @PathVariable Long userId,
                                  @Valid @RequestBody NewEventDto newEventDto) {
@@ -60,8 +63,8 @@ public class EventPrivateController {
 
     @GetMapping("/{eventId}")
     public List<EventFullDto> getEvents(HttpServletRequest request,
-                                        @NotNull @Positive @PathVariable(required = false) Long userId,
-                                        @NotNull @Positive @PathVariable(required = false) Long eventId,
+                                        @Positive @PathVariable(required = false) Long userId,
+                                        @Positive @PathVariable(required = false) Long eventId,
                                         @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                         @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",

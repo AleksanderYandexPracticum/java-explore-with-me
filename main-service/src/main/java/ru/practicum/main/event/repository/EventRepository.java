@@ -95,7 +95,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> getEventsByInitiatorId(Long userId);
 
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -110,7 +110,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                    String text,
                                                    Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -124,7 +124,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                           String text,
                                                           Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -140,7 +140,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                Pageable pageable);
 
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -155,7 +155,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                       Pageable pageable);
 
 
-    @Query(value = "select e from events as e " +
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -169,7 +171,44 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                               String text,
                                               Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
+            "where e.state=?1 " +
+            "and e.category_id in ?2 " +
+            "and e.paid=?3 " +
+            "and e.participant_limit = 0 or e.participant_limit > e.confirmed_requests " +
+            "and e.event_date > ?4 ", nativeQuery = true)
+    List<Event> getAllEventNotTextSortNullParameters(String state,
+                                                     List<Long> category,
+                                                     boolean paid,
+                                                     LocalDateTime time,
+                                                     Pageable pageable);
+
+    @Query(value = "select * from events as e " +
+            "where e.state=?1 " +
+            "and e.paid=?2 " +
+            "and e.participant_limit = 0 or e.participant_limit > e.confirmed_requests " +
+            "and e.event_date > ?3 " +
+            "and upper(e.annotation) like upper(?4) or upper(e.description) like upper(?4) ", nativeQuery = true)
+    List<Event> getAllEventNotCategorySortNullParameters(String state,
+                                                         boolean paid,
+                                                         LocalDateTime time,
+                                                         String text,
+                                                         Pageable pageable);
+
+    @Query(value = "select * from events as e " +
+            "where e.state=?1 " +
+            "and e.paid=?3 " +
+            "and e.participant_limit = 0 or e.participant_limit > e.confirmed_requests " +
+            "and e.event_date > ?4 ", nativeQuery = true)
+    List<Event> getAllEventNoParameters(String state,
+                                        boolean paid,
+                                        LocalDateTime time,
+                                        Pageable pageable);
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -182,8 +221,39 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                      String text,
                                                      Pageable pageable);
 
+    @Query(value = "select * from events as e where e.state=?1 and e.category_id in ?2 and e.paid=?3 and e.event_date > ?4 ", nativeQuery = true)
+    List<Event> getAllEventNotTextSortNullNoLimitParameters(String state,
+                                                            List<Long> category,
+                                                            boolean paid,
+                                                            LocalDateTime time,
+                                                            Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
+            "where e.state=?1 " +
+            "and e.paid=?2 " +
+            "and e.event_date > ?3 " +
+            "and upper(e.annotation) like upper(?4) or upper(e.description) like upper(?4) ", nativeQuery = true)
+    List<Event> getAllEventNotCategorySortNullNoLimitParameters(String state,
+                                                                boolean paid,
+                                                                LocalDateTime time,
+                                                                String text,
+                                                                Pageable pageable);
+
+    @Query(value = "select * from events as e " +
+            "where e.state=?1 " +
+            "and e.paid=?2 " +
+            "and e.event_date > ?3 " +
+            "and upper(e.annotation) like upper(?4) or upper(e.description) like upper(?4) ", nativeQuery = true)
+    List<Event> getAllEventNoLimitParameters(String state,
+                                             boolean paid,
+                                             LocalDateTime time,
+                                             Pageable pageable);
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -199,7 +269,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                              String text,
                                                              Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -214,7 +284,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                                     String text,
                                                                     Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -230,7 +300,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                          String text,
                                                          Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -245,7 +315,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                                 String text,
                                                                 Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +
@@ -260,7 +330,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                                         String text,
                                                         Pageable pageable);
 
-    @Query(value = "select e from events as e " +
+    @Query(value = "select * from events as e " +
             "where e.state=?1 " +
             "and e.category_id in ?2 " +
             "and e.paid=?3 " +

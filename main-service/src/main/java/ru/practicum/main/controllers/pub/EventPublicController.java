@@ -35,8 +35,8 @@ public class EventPublicController {
     }
 
     @GetMapping
-    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request,  //(required = false)
-                                                       @NotBlank @RequestParam String text,
+    public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request,
+                                                       @RequestParam(required = false) String text,
                                                        @RequestParam(required = false) List<Long> categories,
                                                        @RequestParam(required = false) boolean paid,
                                                        @RequestParam(required = false) String rangeStart,

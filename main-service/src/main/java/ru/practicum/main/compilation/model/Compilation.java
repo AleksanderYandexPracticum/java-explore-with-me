@@ -29,9 +29,10 @@ public class Compilation {
     private Long id;
 
     @ManyToMany(cascade = {CascadeType.ALL})
+//    @JoinTable(name = "event_compilations")
     @JoinTable(name = "event_compilations",
-            joinColumns = {@JoinColumn(name = "events_id")},
-            inverseJoinColumns = {@JoinColumn(name = "compilations_id")})
+            joinColumns = {@JoinColumn(name = "event_id")},
+            inverseJoinColumns = {@JoinColumn(name = "compilation_id")})   //inverseJoinColumns = {@JoinColumn(name = "compilation_id")})
     private Set<Event> events = new HashSet<>();
 
     @Column(name = "pinned", nullable = false)

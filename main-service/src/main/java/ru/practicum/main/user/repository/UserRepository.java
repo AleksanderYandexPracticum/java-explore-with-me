@@ -10,7 +10,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User save(User user);
 
-    List<User> getUsersByIdIn(Long[] ids, Pageable pageable);
+    List<User> getUsersByIdIn(List<Long> ids, Pageable pageable);
 
     User removeUserById(Long userId);
 

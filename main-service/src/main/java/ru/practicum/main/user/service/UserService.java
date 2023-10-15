@@ -9,7 +9,7 @@ import java.util.List;
 public interface UserService {
     UserDto addUserAdmin(NewUserRequest newUserRequest);
 
-    List<UserDto> getUsersAdmin(Long[] ids, Integer from, Integer size);
+    List<UserDto> getUsersAdmin(List<Long> ids, Integer from, Integer size);
 
     User deleteUserAdmin(Long id);
 }

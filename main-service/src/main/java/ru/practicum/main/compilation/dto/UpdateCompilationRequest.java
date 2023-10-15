@@ -20,7 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 public class UpdateCompilationRequest {
 
-    @NotEmpty
     private List<Long> events; //Список id событий подборки для полной замены текущего списка
 
     private boolean pinned;

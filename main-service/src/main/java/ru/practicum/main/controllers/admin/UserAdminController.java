@@ -3,6 +3,7 @@ package ru.practicum.main.controllers.admin;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main.user.dto.NewUserRequest;
 import ru.practicum.main.user.dto.UserDto;
@@ -38,15 +40,16 @@ public class UserAdminController {
 
     @GetMapping
     public List<UserDto> getUsers(HttpServletRequest request,
-                                  @RequestParam Long[] ids,
+                                  @RequestParam (required = false) List<Long> ids,
                                   @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                   @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Get user with userId={}, from={}, size={}", ids.toString(), from, size);
+        log.info("Get user with userId={}, from={}, size={}", ids, from, size);
         return userService.getUsersAdmin(ids, from, size);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public UserDto addUser(HttpServletRequest request,
                            @Valid @NonNull @RequestBody NewUserRequest newUserRequest) {

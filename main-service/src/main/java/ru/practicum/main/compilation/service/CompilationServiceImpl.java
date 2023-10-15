@@ -64,7 +64,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public CompilationDto addCompilationAdmin(NewCompilationDto newCompilationDto) {
         Set<Event> listEvent = new HashSet<>();
-        if (newCompilationDto.getEvents().size() != 0) {
+        if (newCompilationDto.getEvents() != null && newCompilationDto.getEvents().size() != 0) {
             listEvent = eventRepository.getEventsByIdIn(newCompilationDto.getEvents());
         }
 
@@ -83,10 +83,14 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     @Override
     public void deleteCompilationByIdAdmin(Long compId) {
-        Compilation deleteCompilation = compilationRepository.removeCompilationById(compId);
+        Compilation deleteCompilation = compilationRepository.getCompilationById(compId);
         if (deleteCompilation == null) {
-            throw new NotFoundException("The required object was not found.");
+            return;
         }
+        compilationRepository.removeCompilationById(compId);
+//        if (deleteCompilation == null) {
+//            throw new NotFoundException("The required object was not found.");
+//        }
     }
 
 
@@ -97,8 +101,10 @@ public class CompilationServiceImpl implements CompilationService {
         if (oldCompilation == null) {
             throw new NotFoundException("The required object was not found.");
         }
-
-        Set<Event> listEvent = eventRepository.getEventsByIdIn(updateCompilationRequest.getEvents());
+        Set<Event> listEvent = new HashSet<>();
+        if (updateCompilationRequest.getEvents() != null) {
+            listEvent = eventRepository.getEventsByIdIn(updateCompilationRequest.getEvents());
+        }
         Compilation compilation = CompilationMapper.toCompilation(updateCompilationRequest, listEvent);
         compilation.setId(compId);
 

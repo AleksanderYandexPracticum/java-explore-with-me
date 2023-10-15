@@ -32,11 +32,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<UserDto> getUsersAdmin(Long[] ids, Integer from, Integer size) {
+    public List<UserDto> getUsersAdmin(List<Long> ids, Integer from, Integer size) {
         Integer pageNumber = from / size;
         Pageable pageable = PageRequest.of(pageNumber, size);
 
-        if (ids == null || ids.length == 0) {
+        if (ids == null || ids.size() == 0) {
             return userRepository.findAll(pageable).stream()
                     .map((user) -> UserMapper.toUserDto(user))
                     .collect(Collectors.toList());

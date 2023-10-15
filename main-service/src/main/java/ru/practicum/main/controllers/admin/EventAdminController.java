@@ -10,7 +10,9 @@ import ru.practicum.main.event.service.EventServiceImpl;
 import ru.practicum.main.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -39,7 +41,6 @@ public class EventAdminController {
                                              @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Get user with userId={}, from={}, size={}", users.toString(), from, size);
         List<EventFullDto> list = eventService.getEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
         return list;
     }
@@ -48,10 +49,10 @@ public class EventAdminController {
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventAdmin(HttpServletRequest request,
                                          @NotNull @PathVariable(required = false) Long eventId,
-                                         @NotNull @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
+                                         @NotNull @Valid @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        EventFullDto eventFullDto= eventService.updateEventAdmin(eventId, updateEventAdminRequest);
+        EventFullDto eventFullDto = eventService.updateEventAdmin(eventId, updateEventAdminRequest);
         return eventFullDto;
     }
 }

@@ -118,7 +118,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         return ApiError.builder()
                 .errors(Collections.singletonList(error(e)))
                 .status(HttpStatus.CONFLICT)
-                .reason("CONFLICT CONFLICT The required object was not found.!!!!!!!!!!!!!!!!!!!!!!")
+                .reason("CONFLICT CONFLICT The name is exists, dublicate!!!!!!!!!!!!!!!!!!!!!!")
                 .message(e.getLocalizedMessage())
                 .timestamp((LocalDateTime.now()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
@@ -130,19 +130,19 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         return ApiError.builder()
                 .errors(Collections.singletonList(error(e)))
                 .status(HttpStatus.CONFLICT)
-                .reason("CONFLICT CONFLICT The required object was not found.!!!!!!!!!!!!!!!!!!!!!!")
+                .reason("CONFLICT CONFLICT The email is exists, dublicate!!!!!!!!!!!!!!!!!!!!!!")
                 .message(e.getLocalizedMessage())
                 .timestamp((LocalDateTime.now()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
     }
 
     @ExceptionHandler(EventDateException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleThrowable(final EventDateException e) throws IOException {
         return ApiError.builder()
                 .errors(Collections.singletonList(error(e)))
-                .status(HttpStatus.FORBIDDEN)
-                .reason("FORBIDDEN FORBIDDENT   TIIIIIIMEEEEE")
+                .status(HttpStatus.CONFLICT)
+                .reason("Incorrectly  time")
                 .message(e.getLocalizedMessage())
                 .timestamp((LocalDateTime.now()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();

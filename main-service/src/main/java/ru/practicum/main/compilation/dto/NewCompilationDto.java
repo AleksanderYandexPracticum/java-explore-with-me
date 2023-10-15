@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class NewCompilationDto {
     private List<Long> events;
     private boolean pinned = false;
 
+    @NotBlank
     @Size(min = 1, message = "{validation.title.size.too_short}")
     @Size(max = 50, message = "{validation.title.size.too_long}")
     private String title;

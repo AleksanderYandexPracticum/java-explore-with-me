@@ -1,11 +1,13 @@
 package ru.practicum.main.category.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Fetch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.CategoryMapper;
 import ru.practicum.main.category.dto.CategoryDto;
@@ -54,17 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto updateCategoryAdmin(Long catId, NewCategoryDto newCategoryDto) {
         Category newCategory = CategoryMapper.toCategory(newCategoryDto);
         newCategory.setId(catId);
-        CategoryDto categoryDto;
-        try {
-            categoryDto = CategoryMapper.toCategoryDto(categoryRepository.save(newCategory));
-            if (categoryDto == null) {
-                throw new NotFoundException("The required object was not found.");
-            }
-        } catch (DataIntegrityViolationException e) {
-            log.info("Duplicate of the categrory name");
-            throw new DuplicateNameException("Duplicate of the categrory name");
-        }
-        return categoryDto;
+        return CategoryMapper.toCategoryDto(categoryRepository.save(newCategory));
     }
 
     @Transactional

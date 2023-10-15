@@ -54,11 +54,12 @@ public class ParticipationServiceImpl implements ParticipationService {
     @Override
     public ParticipationRequestDto addParticipationRequestPrivate(Long userId, Long eventId) {
         Event event = eventRepository.getEventsById(eventId);
+
         if (event == null) {
             throw new NotFoundException("The required object was not found.");
         } else if (event.getInitiator().equals(userId)) {
             throw new RepeatParticipationRequestException("Request self userId ");
-        } else if (!event.getState().equals(State.PUBLISHED)) {
+        } else if (!event.getState().equals(State.PUBLISHED) && event.isRequestModeration()) {
             throw new RepeatParticipationRequestException("Request not PUBLISED ");
         } else if (event.getConfirmedRequests() != null && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
             throw new RepeatParticipationRequestException("Request overflow ParticipantLimit ");

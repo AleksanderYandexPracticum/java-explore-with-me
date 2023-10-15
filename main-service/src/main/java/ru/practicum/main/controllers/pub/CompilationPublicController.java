@@ -31,9 +31,9 @@ public class CompilationPublicController {
         this.compilationService = publicCompilationServiceImpl;
     }
 
-    @GetMapping()
+    @GetMapping
     public List<CompilationDto> getCompilationsPublic(HttpServletRequest request,
-                                                      @NotNull @RequestParam(name = "pinned") boolean pinned,
+                                                      @NotNull @RequestParam(required = false, name = "pinned") boolean pinned,
                                                       @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                       @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",

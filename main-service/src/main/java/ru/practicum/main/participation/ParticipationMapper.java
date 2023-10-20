@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 public class ParticipationMapper {
     public static ParticipationRequestDto toParticipationRequestDto(ParticipationRequest participationRequest) {
         return ParticipationRequestDto.builder()
+                .id(participationRequest.getId())
                 .created(participationRequest.getCreated().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .event(participationRequest.getEvent())
                 .requester(participationRequest.getRequester())

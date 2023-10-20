@@ -3,6 +3,8 @@ package ru.practicum.main.event;
 
 import ru.practicum.main.event.dto.CommentDto;
 import ru.practicum.main.event.model.Comment;
+import ru.practicum.main.event.model.Event;
+import ru.practicum.main.user.model.User;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,12 +20,12 @@ public class CommentMapper {
                 .build();
     }
 
-    public static Comment toComment(CommentDto commentDto) {
+    public static Comment toComment(CommentDto commentDto, User user, Event event) {
         return Comment.builder()
                 .text(commentDto.getText())
-                .event(commentDto.getEvent())
-                .author(commentDto.getAuthor())
-                .created(LocalDateTime.parse(commentDto.getCreated(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .event(event)
+                .author(user)
+                .created(LocalDateTime.now())
                 .build();
     }
 }

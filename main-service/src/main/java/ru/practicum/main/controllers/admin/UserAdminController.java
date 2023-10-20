@@ -58,6 +58,7 @@ public class UserAdminController {
         return userService.addUserAdmin(newUserRequest);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{userId}")
     public void deleteUser(HttpServletRequest request,
                            @NonNull @Positive @PathVariable("userId") Long userId) {

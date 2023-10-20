@@ -13,7 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.main.event.dto.*;
+import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
+import ru.practicum.main.event.dto.EventShortDto;
+import ru.practicum.main.event.dto.NewEventDto;
+import ru.practicum.main.event.dto.UpdateEventUserRequest;
 import ru.practicum.main.event.service.EventService;
 import ru.practicum.main.event.service.EventServiceImpl;
 import ru.practicum.main.participation.dto.ParticipationRequestDto;
@@ -53,7 +58,7 @@ public class EventPrivateController {
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto addEvent(HttpServletRequest request,
                                  @Positive @PathVariable Long userId,
-                                 @Valid @RequestBody NewEventDto newEventDto) {
+                                 @NotNull @Valid @RequestBody NewEventDto newEventDto) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
         log.info("Create event with userId={}", userId);
@@ -62,17 +67,14 @@ public class EventPrivateController {
     }
 
     @GetMapping("/{eventId}")
-    public List<EventFullDto> getEvents(HttpServletRequest request,
-                                        @Positive @PathVariable(required = false) Long userId,
-                                        @Positive @PathVariable(required = false) Long eventId,
-                                        @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                        @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
+    public EventFullDto getEvent(HttpServletRequest request,
+                                 @Positive @PathVariable(required = false) Long userId,
+                                 @Positive @PathVariable(required = false) Long eventId) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Get user with userId={}, eventId={}, from={}, size={}", userId, eventId, from, size);
-        return eventService.getEventsPrivate(userId, eventId, from, size);
+        log.info("Get user with userId={}, eventId={} ", userId, eventId);
+        return eventService.getEventPrivate(userId, eventId);
     }
-
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventUserRequest(HttpServletRequest request,

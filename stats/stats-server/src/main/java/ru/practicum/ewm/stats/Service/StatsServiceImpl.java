@@ -2,8 +2,10 @@ package ru.practicum.ewm.stats.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.ewm.dto.stats.statsDto.EndpointHitDto;
 import ru.practicum.ewm.dto.stats.statsDto.ViewStats;
 import ru.practicum.ewm.stats.StatsMapper;
@@ -46,6 +48,9 @@ public class StatsServiceImpl implements StatsService {
             endTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8.toString()), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
+        }
+        if(endTime.isBefore(startTime)){
+            throw new IllegalArgumentException("End before start");
         }
 
         List<ViewStats> list = null;

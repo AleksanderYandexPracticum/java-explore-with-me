@@ -17,7 +17,7 @@ public interface EventService {
 
     EventFullDto addEventPrivate(Long userId, NewEventDto newEventDto);
 
-    List<EventFullDto> getEventsPrivate(Long userId, Long eventId, Integer from, Integer size);
+    EventFullDto getEventPrivate(Long userId, Long eventId);
 
     EventFullDto updateEventPrivate(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest);
 

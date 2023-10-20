@@ -101,7 +101,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(ValidationExceptionFindCategory.class)
-    @ResponseStatus(HttpStatus.CONFLICT)   // для всех ситуаций, если искомый объект не найден
+    @ResponseStatus(HttpStatus.CONFLICT)   // Категория существует
     public ApiError handle(final ValidationExceptionFindCategory e) throws IOException {
         return ApiError.builder()
                 .errors(Collections.singletonList(error(e)))
@@ -160,9 +160,9 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(OverflowParticipiantLimitException.class)
+    @ExceptionHandler(OverflowLimitException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleThrowable(final OverflowParticipiantLimitException e) throws IOException {
+    public ApiError handleThrowable(final OverflowLimitException e) throws IOException {
         return ApiError.builder()
                 .errors(Collections.singletonList(error(e)))
                 .status(HttpStatus.CONFLICT)

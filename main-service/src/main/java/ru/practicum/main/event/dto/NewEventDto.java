@@ -20,6 +20,8 @@ import javax.validation.constraints.Size;
 @EqualsAndHashCode
 @AllArgsConstructor
 public class NewEventDto {
+
+    @NotNull
     @NotBlank
     @Size(min = 20, message = "{validation.annotation.size.too_short}")
     @Size(max = 2000, message = "{validation.annotation.size.too_long}")
@@ -28,23 +30,26 @@ public class NewEventDto {
     @Positive
     private Long category;
 
+    @NotNull
     @NotBlank
     @Size(min = 20, message = "{validation.description.size.too_short}")
     @Size(max = 7000, message = "{validation.description.size.too_long}")
     private String description;
 
+    @NotNull
     @NotBlank
     private String eventDate;
 
     @NotNull
     private Location location;
 
-    private boolean paid = false;
+    private boolean paid;// = false;
 
-    private Integer participantLimit = 0;
+    private Integer participantLimit;// = 0;
 
-    private boolean requestModeration = true;
+    private boolean requestModeration;// = true;
 
+    @NotNull
     @NotBlank
     @Size(min = 3, message = "{validation.title.size.too_short}")
     @Size(max = 120, message = "{validation.title.size.too_long}")

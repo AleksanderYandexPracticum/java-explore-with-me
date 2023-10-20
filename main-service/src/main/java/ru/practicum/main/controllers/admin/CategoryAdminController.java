@@ -2,7 +2,6 @@ package ru.practicum.main.controllers.admin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,8 +16,6 @@ import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.category.dto.NewCategoryDto;
 import ru.practicum.main.category.service.CategoryServiceImpl;
 import ru.practicum.main.category.service.CategoryService;
-import ru.practicum.main.exception.DuplicateNameException;
-import ru.practicum.main.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -53,19 +50,10 @@ public class CategoryAdminController {
                                            @Valid @RequestBody NewCategoryDto newCategoryDto) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        CategoryDto categoryDto;
-        try {
-            categoryDto = categoryService.updateCategoryAdmin(catId, newCategoryDto);
-        } catch (DataIntegrityViolationException e) {
-            log.info("Duplicate of the categrory name");
-            throw new DuplicateNameException("Duplicate of the categrory name");
-        }
-        if (categoryDto == null) {
-            throw new NotFoundException("The required object was not found.");
-        }
-        return categoryDto;
+        return categoryService.updateCategoryAdmin(catId, newCategoryDto);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{catId}")
     public void deleteCategoryAdmin(HttpServletRequest request,
                                     @Positive @PathVariable("catId") Long catId) {

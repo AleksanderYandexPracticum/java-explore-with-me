@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.main.category.dto.CategoryDto;
-import ru.practicum.main.location.model.Location;
+import ru.practicum.main.location.dto.LocationDto;
 import ru.practicum.main.user.dto.UserShortDto;
 
 
@@ -20,19 +20,19 @@ import ru.practicum.main.user.dto.UserShortDto;
 public class EventFullDto {
 
     private Long id;
+    private String title;
     private String annotation;
     private CategoryDto category;
-    private Long confirmedRequests;
-    private String createdOn;
-    private String description;
+    private boolean paid;
     private String eventDate;
     private UserShortDto initiator;
-    private Location location;
-    private boolean paid;
-    private Integer participantLimit = 0;
-    private String publishedOn;
-    private boolean requestModeration = true;
+    private Long confirmedRequests;
+    private String description;
+    private Integer participantLimit;
     private String state;
-    private String title;
+    private String createdOn;
+    private LocationDto location;
+    private boolean requestModeration;
+    private String publishedOn;
     private Long views;
 }

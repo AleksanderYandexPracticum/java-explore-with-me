@@ -9,6 +9,7 @@ import ru.practicum.main.event.model.State;
 import ru.practicum.main.event.model.Status;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.NotFoundException;
+import ru.practicum.main.exception.OverflowLimitException;
 import ru.practicum.main.exception.RepeatParticipationRequestException;
 import ru.practicum.main.participation.ParticipationMapper;
 import ru.practicum.main.participation.dto.ParticipationRequestDto;
@@ -35,7 +36,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<ParticipationRequestDto> getParticipationRequestPrivate(Long userId) {
         if (userRepository.getUserById(userId) == null) {
@@ -45,8 +46,12 @@ public class ParticipationServiceImpl implements ParticipationService {
                 .stream()
                 .map((event) -> event.getId())
                 .collect(Collectors.toList());
-        List<ParticipationRequest> list = participationRepository.getParticipationRequestsByRequesterAndEventNotIn(userId, eventIdList);
-
+        List<ParticipationRequest> list;
+        if (eventIdList.size() == 0) {
+            list = participationRepository.getParticipationRequestsByRequester(userId);
+        } else {
+            list = participationRepository.getParticipationRequestsByRequesterAndEventNotIn(userId, eventIdList);
+        }
         return list.stream().map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
     }
 
@@ -54,32 +59,30 @@ public class ParticipationServiceImpl implements ParticipationService {
     @Override
     public ParticipationRequestDto addParticipationRequestPrivate(Long userId, Long eventId) {
         Event event = eventRepository.getEventsById(eventId);
-
-        if (event == null) {
-            throw new NotFoundException("The required object was not found.");
-        } else if (event.getInitiator().equals(userId)) {
-            throw new RepeatParticipationRequestException("Request self userId ");
-        } else if (!event.getState().equals(State.PUBLISHED) && event.isRequestModeration()) {
-            throw new RepeatParticipationRequestException("Request not PUBLISED ");
-        } else if (event.getConfirmedRequests() != null && event.getConfirmedRequests().equals(event.getParticipantLimit())) {
-            throw new RepeatParticipationRequestException("Request overflow ParticipantLimit ");
-        }
         List<ParticipationRequest> participationRequestList = participationRepository.getParticipationRequestsByRequesterAndEvent(userId, eventId);
-        if (participationRequestList.size() != 0) {
-            throw new RepeatParticipationRequestException("Request has been");
-        }
 
+        validateAddParticipationRequestPrivate(event, participationRequestList, userId);
 
         ParticipationRequest participationRequest = ParticipationRequest.builder()
                 .created(LocalDateTime.now())
                 .event(eventId)
                 .requester(userId)
-                .status(event.isRequestModeration() ? Status.PENDING : Status.CONFIRMED)
                 .build();
+
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
+            participationRequest.setStatus(Status.CONFIRMED);
+            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
+        } else {
+            participationRequest.setStatus(Status.PENDING);
+            eventRepository.save(event);
+        }
+
         ParticipationRequest newParticipationRequest = participationRepository.save(participationRequest);
         ParticipationRequestDto participationRequestDto = ParticipationMapper
                 .toParticipationRequestDto(newParticipationRequest);
         participationRequestDto.setId(newParticipationRequest.getId());
+
 
         return participationRequestDto;
     }
@@ -93,18 +96,35 @@ public class ParticipationServiceImpl implements ParticipationService {
         if (participationRequest == null) {
             throw new NotFoundException("The required object was not found.");
         }
-        if (!participationRequest.getStatus().equals(Status.CONFIRMED)) {
-            participationRequest.setStatus(Status.REJECTED);
-        } else {
+        if (participationRequest.getStatus().equals(Status.PENDING)) {
+            participationRequest.setStatus(Status.CANCELED);
+        } else if (participationRequest.getStatus().equals(Status.CONFIRMED)) {
             Event event = eventRepository.getEventsById(participationRequest.getEvent());
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);
             eventRepository.save(event);
-            participationRequest.setStatus(Status.REJECTED);
+            participationRequest.setStatus(Status.CANCELED);
         }
 
         ParticipationRequestDto participationRequestDto = ParticipationMapper
                 .toParticipationRequestDto(participationRepository.save(participationRequest));
 
         return participationRequestDto;
+    }
+
+    private void validateAddParticipationRequestPrivate(Event event, List<ParticipationRequest> participationRequestList, Long userId) {
+        if (participationRequestList.size() != 0) {
+            throw new RepeatParticipationRequestException("Repeated Request!");
+        }
+        if (event == null) {
+            throw new IllegalArgumentException("Request was not found.");
+        } else if (event.getInitiator().getId().equals(userId)) {
+            throw new RepeatParticipationRequestException("Adding the request to its own event");
+        } else if (event.getState() == null || !event.getState().equals(State.PUBLISHED)) {
+            throw new RepeatParticipationRequestException("The request has a status not PUBLISED ");
+        } else if (event.getConfirmedRequests() != null
+                && event.getParticipantLimit() > 0
+                && event.getConfirmedRequests().equals(Long.valueOf(event.getParticipantLimit()))) {
+            throw new OverflowLimitException("Request overflow ParticipantLimit");
+        }
     }
 }

@@ -14,7 +14,6 @@ import ru.practicum.main.event.service.EventService;
 import ru.practicum.main.event.service.EventServiceImpl;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;

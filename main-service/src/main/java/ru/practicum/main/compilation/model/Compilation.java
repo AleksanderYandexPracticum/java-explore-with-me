@@ -30,14 +30,14 @@ public class Compilation {
 
     @ManyToMany(cascade = {CascadeType.ALL})
 //    @JoinTable(name = "event_compilations")
-    @JoinTable(name = "event_compilations",
-            joinColumns = {@JoinColumn(name = "event_id")},
-            inverseJoinColumns = {@JoinColumn(name = "compilation_id")})   //inverseJoinColumns = {@JoinColumn(name = "compilation_id")})
+    @JoinTable(name = "events_compilations",
+            joinColumns = {@JoinColumn(name = "compilation_id")},
+            inverseJoinColumns = {@JoinColumn(name = "event_id")})
     private Set<Event> events = new HashSet<>();
 
-    @Column(name = "pinned", nullable = false)
+    @Column(name = "pinned")
     private boolean pinned;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title")
     private String title;
 }

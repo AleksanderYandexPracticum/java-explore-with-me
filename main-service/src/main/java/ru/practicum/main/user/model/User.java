@@ -20,7 +20,7 @@ import javax.persistence.Table;
 @Setter
 @EqualsAndHashCode
 @ToString
-@Table(name = "users")
+@Table(name ="users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,9 +29,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", nullable = false)
+    @Column
     private String email;
 
-    @Column(name = "name", nullable = false)
+    @Column
     private String name;
 }

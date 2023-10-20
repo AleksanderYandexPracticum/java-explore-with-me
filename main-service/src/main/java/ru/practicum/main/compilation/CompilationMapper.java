@@ -33,7 +33,6 @@ public class CompilationMapper {
         return Compilation.builder()
                 .events(events)
                 .pinned(updateCompilationRequest.isPinned())
-                .title(updateCompilationRequest.getTitle())
                 .build();
     }
 }

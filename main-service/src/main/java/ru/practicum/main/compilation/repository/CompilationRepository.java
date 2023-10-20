@@ -12,5 +12,5 @@ public interface CompilationRepository extends JpaRepository<Compilation, Long> 
 
     Compilation getCompilationById(Long compId);
 
-    Compilation removeCompilationById(Long compId);
+    void removeCompilationById(Long compId);
 }

@@ -1,27 +1,23 @@
 package ru.practicum.main.category.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Fetch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.CategoryMapper;
 import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.category.dto.NewCategoryDto;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
-import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.DuplicateNameException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.exception.ValidationExceptionFindCategory;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -54,27 +50,45 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryDto updateCategoryAdmin(Long catId, NewCategoryDto newCategoryDto) {
+        if (categoryRepository.getReferenceById(catId) == null) {
+            throw new NotFoundException("The required object was not found.");
+        }
         Category newCategory = CategoryMapper.toCategory(newCategoryDto);
         newCategory.setId(catId);
-        return CategoryMapper.toCategoryDto(categoryRepository.save(newCategory));
+        CategoryDto categoryDto;
+        try {
+            categoryDto = CategoryMapper.toCategoryDto(categoryRepository.saveAndFlush(newCategory));
+        } catch (DataIntegrityViolationException e) {
+            log.info("Duplicate of the categrory name");
+            throw new DuplicateNameException("Duplicate of the categrory name");
+        }
+//        if (categoryDto == null) {
+//            throw new NotFoundException("The required object was not found.");
+//        }
+
+        return categoryDto;
     }
+//        return CategoryMapper.toCategoryDto(categoryRepository.save(newCategory));
+//    }
 
     @Transactional
     @Override
     public void deleteCategoryAdmin(Long catId) {
-
-        Event event = eventRepository.findFirstByCategoryId(catId);
-        if (event != null) {
-            throw new ValidationExceptionFindCategory("The category is not empty");
-        } else {
-            Category deleteCategory = categoryRepository.removeCategoryById(catId);
-            if (deleteCategory == null) {
-                throw new NotFoundException("The required object was not found.");
-            }
+        if (categoryRepository.getById(catId) == null) {
+            throw new NotFoundException("The required object was not found.");
         }
+        if (eventRepository.findFirstByCategoryId(catId) != null) {
+            throw new ValidationExceptionFindCategory("The category is not empty");
+        }
+//        categoryRepository.removeCategoryById(catId);
+        categoryRepository.deleteCategoryById(catId);
+//        if (deleteCategory == null) {
+//            throw new NotFoundException("The required object was not found.");
+//        }
     }
 
-    @Transactional(readOnly = true)
+
+    @Transactional
     @Override
     public List<CategoryDto> getCategoryPublic(Integer from, Integer size) {
 
@@ -88,11 +102,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public CategoryDto getCategoryByIdPublic(Long catId) {
-        Optional<Category> category = Optional.ofNullable(categoryRepository.getById(catId));
-
-        return CategoryMapper.toCategoryDto(category.orElseThrow(() -> new NotFoundException("The required object was not found.")));
+        Category category = categoryRepository.findCategoryById(catId);
+        if (category == null) {
+            throw new NotFoundException("The required object was not found.");
+        }
+        return CategoryMapper.toCategoryDto(category);
     }
 }

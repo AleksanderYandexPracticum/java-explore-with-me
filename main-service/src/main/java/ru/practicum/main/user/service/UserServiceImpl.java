@@ -5,11 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.exception.DuplicateEmailException;
-import ru.practicum.main.exception.ValidationExceptionGetUsers;
+import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.user.UserMapper;
 import ru.practicum.main.user.dto.NewUserRequest;
 import ru.practicum.main.user.dto.UserDto;
@@ -30,7 +29,7 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<UserDto> getUsersAdmin(List<Long> ids, Integer from, Integer size) {
         Integer pageNumber = from / size;
@@ -63,8 +62,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User deleteUserAdmin(Long userId) {
-        return userRepository.removeUserById(userId);
+    public void deleteUserAdmin(Long userId) {
+        if (userRepository.getUserById(userId) == null) {
+            throw new NotFoundException("The required object was not found.");
+        }
+        userRepository.removeUserById(userId);
     }
 
 }

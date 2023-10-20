@@ -21,7 +21,7 @@ import java.util.List;
 public class NewCompilationDto {
 
     private List<Long> events;
-    private boolean pinned = false;
+    private boolean pinned;
 
     @NotBlank
     @Size(min = 1, message = "{validation.title.size.too_short}")

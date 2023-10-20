@@ -8,6 +8,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Category getById(Long catId);
 
-    Category removeCategoryById(Long userId);
+    void deleteCategoryById(Long catId);
+
+    Category findCategoryById(Long catId);
 
 }

@@ -15,4 +15,8 @@ public interface ParticipationRepository extends JpaRepository<ParticipationRequ
     List<ParticipationRequest> getParticipationRequestsByRequesterAndEventNotIn(Long userId, List<Long> eventIdList);
 
     ParticipationRequest getParticipationRequestByIdAndRequester(Long requestId, Long userId);
+
+    List<ParticipationRequest> getParticipationRequestsByEvent(Long eventId);
+
+    List<ParticipationRequest> getParticipationRequestsByRequester(Long userId);
 }

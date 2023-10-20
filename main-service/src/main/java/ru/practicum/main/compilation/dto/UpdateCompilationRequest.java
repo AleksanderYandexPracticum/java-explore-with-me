@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UpdateCompilationRequest {
 
-    private List<Long> events; //Список id событий подборки для полной замены текущего списка
+    private List<Long> events;
 
     private boolean pinned;
 

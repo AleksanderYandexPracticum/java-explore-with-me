@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.main.location.model.Location;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
@@ -39,7 +37,7 @@ public class UpdateEventUserRequest {
 
     private boolean paid;
 
-    @Min(0)
+    @Positive
     private Integer participantLimit;
 
 

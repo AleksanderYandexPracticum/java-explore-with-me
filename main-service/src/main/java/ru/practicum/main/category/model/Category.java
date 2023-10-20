@@ -33,6 +33,6 @@ public class Category {
 
     @Size(min = 1, message = "{validation.name.size.too_short}")
     @Size(max = 50, message = "{validation.name.size.too_long}")
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 }

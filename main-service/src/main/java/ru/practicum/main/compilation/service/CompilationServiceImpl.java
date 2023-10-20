@@ -36,7 +36,7 @@ public class CompilationServiceImpl implements CompilationService {
         this.eventRepository = eventRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<CompilationDto> getCompilationsPublic(boolean pinned, Integer from, Integer size) {
 
@@ -48,7 +48,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public CompilationDto getCompilationByIdPublic(Long compId) {
         CompilationDto compilationDto = CompilationMapper
@@ -83,14 +83,10 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     @Override
     public void deleteCompilationByIdAdmin(Long compId) {
-        Compilation deleteCompilation = compilationRepository.getCompilationById(compId);
-        if (deleteCompilation == null) {
-            return;
+        if (compilationRepository.getCompilationById(compId) == null) {
+            throw new NotFoundException("The required object was not found.");
         }
         compilationRepository.removeCompilationById(compId);
-//        if (deleteCompilation == null) {
-//            throw new NotFoundException("The required object was not found.");
-//        }
     }
 
 
@@ -106,6 +102,7 @@ public class CompilationServiceImpl implements CompilationService {
             listEvent = eventRepository.getEventsByIdIn(updateCompilationRequest.getEvents());
         }
         Compilation compilation = CompilationMapper.toCompilation(updateCompilationRequest, listEvent);
+        compilation.setTitle(updateCompilationRequest.getTitle() == null ? oldCompilation.getTitle() : updateCompilationRequest.getTitle());
         compilation.setId(compId);
 
 

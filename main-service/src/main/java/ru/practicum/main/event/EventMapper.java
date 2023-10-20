@@ -10,6 +10,7 @@ import ru.practicum.main.event.dto.UpdateEventAdminRequest;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.State;
+import ru.practicum.main.location.LocationMapper;
 import ru.practicum.main.user.UserMapper;
 import ru.practicum.main.user.model.User;
 
@@ -27,12 +28,12 @@ public class EventMapper {
                 .description(event.getDescription())
                 .eventDate(event.getEventDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(UserMapper.toUserShortDto(event.getInitiator()))
-                .location(event.getLocation())
+                .location(LocationMapper.toLocationDto(event.getLocation()))
                 .paid(event.isPaid())
                 .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .publishedOn(event.getPublishedOn() == null ? null : event.getPublishedOn().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .requestModeration(event.isRequestModeration())
-                .state(event.getState().toString())
+                .state(event.getState() == null ? null : event.getState().toString())
                 .title(event.getTitle())
                 .views(event.getViews())
                 .build();
@@ -58,12 +59,8 @@ public class EventMapper {
                 .category(category)
                 .createdOn(LocalDateTime.now())
                 .description(newEventDto.getDescription())
-                .eventDate(LocalDateTime.parse(newEventDto.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(initiator)
                 .location(newEventDto.getLocation())
-                .paid(newEventDto.isPaid())
-                .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.isRequestModeration())
                 .state(State.PENDING)
                 .title(newEventDto.getTitle())
                 .views(0L)
@@ -81,10 +78,9 @@ public class EventMapper {
                 .eventDate(updateEventAdminRequest.getEventDate() == null ? oldEvent.getEventDate() : LocalDateTime.parse(updateEventAdminRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(oldEvent.getInitiator())
                 .location(updateEventAdminRequest.getLocation() == null ? oldEvent.getLocation() : updateEventAdminRequest.getLocation())
-                .paid(updateEventAdminRequest.isPaid())
+                .paid(updateEventAdminRequest.isPaid() != false ? true : false)
                 .participantLimit(updateEventAdminRequest.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : updateEventAdminRequest.getParticipantLimit())
-                .requestModeration(updateEventAdminRequest.isRequestModeration())
-                .publishedOn(oldEvent.getPublishedOn())
+                .requestModeration(updateEventAdminRequest.isRequestModeration() == false ? oldEvent.isRequestModeration() : false)
                 .state(oldEvent.getState())
                 .title(updateEventAdminRequest.getTitle() == null ? oldEvent.getTitle() : updateEventAdminRequest.getTitle())
                 .views(oldEvent.getViews())
@@ -102,11 +98,9 @@ public class EventMapper {
                 .eventDate(updateEventUserRequest.getEventDate() == null ? oldEvent.getEventDate() : LocalDateTime.parse(updateEventUserRequest.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .initiator(oldEvent.getInitiator())
                 .location(updateEventUserRequest.getLocation() == null ? oldEvent.getLocation() : updateEventUserRequest.getLocation())
-                .paid(updateEventUserRequest.isPaid())
+                .paid(updateEventUserRequest.isPaid() == false ? oldEvent.isPaid() : false)//updateEventUserRequest.isPaid()
                 .participantLimit(updateEventUserRequest.getParticipantLimit() == null ? oldEvent.getParticipantLimit() : updateEventUserRequest.getParticipantLimit())
-                .requestModeration(updateEventUserRequest.isRequestModeration())
-                .publishedOn(oldEvent.getPublishedOn())
-                .state(oldEvent.getState())
+                .requestModeration(updateEventUserRequest.isRequestModeration())//updateEventUserRequest.isRequestModeration() == false ? oldEvent.isRequestModeration() : false)//updateEventUserRequest.isRequestModeration()
                 .title(updateEventUserRequest.getTitle() == null ? oldEvent.getTitle() : updateEventUserRequest.getTitle())
                 .views(oldEvent.getViews())
                 .build();

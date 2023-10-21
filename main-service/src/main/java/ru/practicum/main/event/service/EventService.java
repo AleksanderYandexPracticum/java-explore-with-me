@@ -34,5 +34,5 @@ public interface EventService {
                                                 String rangeStart, String rangeEnd, boolean onlyAvailable,
                                                 String sort, Integer from, Integer size);
 
-    EventFullDto getEventByIdAndStatsPublic(HttpServletRequest request, Long Id);
+    EventFullDto getEventByIdAndStatsPublic(HttpServletRequest request, Long eventId);
 }

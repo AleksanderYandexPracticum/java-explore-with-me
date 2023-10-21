@@ -14,7 +14,7 @@ import javax.transaction.Transactional;
 
 @Slf4j
 @Service
-public class CommentServiceImpl implements CommentService{
+public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;

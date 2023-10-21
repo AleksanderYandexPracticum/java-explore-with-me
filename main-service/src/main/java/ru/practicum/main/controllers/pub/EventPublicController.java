@@ -52,10 +52,10 @@ public class EventPublicController {
 
     @GetMapping("/{Id}")
     public EventFullDto getEventByIdAndStatsPublic(HttpServletRequest request,
-                                                   @Positive @PathVariable("Id") Long Id) {
+                                                   @Positive @PathVariable("Id") Long eventId) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Get userById with Id={}", Id);
-        return eventService.getEventByIdAndStatsPublic(request, Id);
+        log.info("Get userById with Id={}", eventId);
+        return eventService.getEventByIdAndStatsPublic(request, eventId);
     }
 }

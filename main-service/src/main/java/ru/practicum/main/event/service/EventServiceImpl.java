@@ -8,7 +8,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpServerErrorException;
 import ru.practicum.ewm.client.stats.stats.StatsClient;
 import ru.practicum.ewm.dto.stats.statsDto.EndpointHitDto;
 import ru.practicum.ewm.dto.stats.statsDto.ViewStats;
@@ -47,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static ru.practicum.main.event.service.EventSpecifications.betweenTimeEnd;
 import static ru.practicum.main.event.service.EventSpecifications.isCategory;
 import static ru.practicum.main.event.service.EventSpecifications.isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest;
 import static ru.practicum.main.event.service.EventSpecifications.isOnlyAvailableParticipantLimitGreaterConfirmedRequest;
@@ -504,8 +504,21 @@ public class EventServiceImpl implements EventService {
                         .where(isTextAnnotation(text))
                         .or(isTextDescription(text)));
 
+        Specification<Event> specBetween = Specification.where(EventSpecifications
+                .isState(State.PUBLISHED))
+                .and(isPaid(paid))
+                .and(betweenTimeEnd(startTime, endTime, timeNow))
+                .and(Specification
+                        .where(isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(onlyAvailable))
+                        .or(isOnlyAvailableParticipantLimitGreaterConfirmedRequest(onlyAvailable)))
+                .and(isSort(sort))
+                .and(isCategory(categories))
+                .and(Specification
+                        .where(isTextAnnotation(text))
+                        .or(isTextDescription(text)));
 
-//        List<Event> list = eventRepository.findAll(specs, pageable).getContent();
+
+ //       List<Event> listaaaa = eventRepository.findAll(specBetween, pageable).getContent();
 
         List<Event> list;
         if (text != null) {
@@ -970,8 +983,8 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventFullDto getEventByIdAndStatsPublic(HttpServletRequest request, Long Id) {
-        Event event = eventRepository.getEventByIdAndState(Id, State.PUBLISHED);
+    public EventFullDto getEventByIdAndStatsPublic(HttpServletRequest request, Long eventId) {
+        Event event = eventRepository.getEventByIdAndState(eventId, State.PUBLISHED);
         if (event == null) {
             throw new NotFoundException("The required object was not found.");
         }

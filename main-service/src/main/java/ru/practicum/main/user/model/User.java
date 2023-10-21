@@ -20,7 +20,7 @@ import javax.persistence.Table;
 @Setter
 @EqualsAndHashCode
 @ToString
-@Table(name ="users")
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

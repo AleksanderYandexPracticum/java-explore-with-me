@@ -4,14 +4,7 @@ import org.springframework.data.jpa.domain.Specification;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.State;
 
-import javax.persistence.TemporalType;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class EventSpecifications {
@@ -25,22 +18,27 @@ public class EventSpecifications {
 
     public static Specification<Event> periodTimeStart(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
         if (startTime == null || endTime == null) {
-            return (root, query, cb) -> cb.greaterThan(root.<TemporalType>get("eventDate").as(LocalDateTime.class), timeNow);
+            return (root, query, cb) -> cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
         }
         return (root, query, cb) -> {
-//            return cb.lessThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), startTime);
-            return cb.and(cb.greaterThan(root.<TemporalType>get("eventDate").as(LocalDateTime.class), startTime));
+            return cb.and(cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), startTime));
         };
     }
 
     public static Specification<Event> periodTimeEnd(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
         if (startTime == null || endTime == null) {
-            return (root, query, cb) -> cb.greaterThan(root.<TemporalType>get("eventDate").as(LocalDateTime.class),timeNow);
+            return (root, query, cb) -> cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
         }
         return (root, query, cb) -> {
-//          return  cb.lessThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), endTime);
-            return cb.and(cb.lessThan(root.<TemporalType>get("eventDate").as(LocalDateTime.class), endTime));//cb.literal(endTime)
+            return cb.and(cb.lessThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), endTime));//cb.literal(endTime)
         };
+    }
+
+    public static Specification<Event> betweenTimeEnd(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
+        if (startTime == null || endTime == null) {
+            return (root, query, cb) -> cb.greaterThan(root.get("eventDate"), timeNow);
+        }
+        return (root, query, cb) -> cb.between(root.get("eventDate"), startTime, endTime);
     }
 
     public static Specification<Event> isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(boolean onlyAvailable) {

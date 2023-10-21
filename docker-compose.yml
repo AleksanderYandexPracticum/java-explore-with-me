@@ -23,8 +23,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123
 
-  main-service:
-    build: main-service
+  ewm-service:
+    build: ewm-service
     container_name: container_servermain
     ports:
       - "8080:8080"

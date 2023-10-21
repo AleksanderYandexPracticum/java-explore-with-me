@@ -86,7 +86,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         return participationRequestDto;
     }
-    
+
     @Transactional
     @Override
     public ParticipationRequestDto updateRejectedParticipationRequestPrivate(Long userId, Long requestId) {

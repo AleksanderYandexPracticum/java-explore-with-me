@@ -67,7 +67,7 @@ public class Event {
     private Location location;
 
     @Column
-    private boolean paid;
+    private Boolean paid;
 
     @Column
     private Integer participantLimit;
@@ -76,7 +76,7 @@ public class Event {
     private LocalDateTime publishedOn;
 
     @Column
-    private boolean requestModeration;
+    private Boolean requestModeration;
 
     @Enumerated(EnumType.STRING)
     private State state;

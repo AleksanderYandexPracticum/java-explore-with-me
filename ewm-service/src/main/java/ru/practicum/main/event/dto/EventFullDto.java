@@ -23,7 +23,7 @@ public class EventFullDto {
     private String title;
     private String annotation;
     private CategoryDto category;
-    private boolean paid;
+    private Boolean paid;
     private String eventDate;
     private UserShortDto initiator;
     private Long confirmedRequests;
@@ -32,7 +32,7 @@ public class EventFullDto {
     private String state;
     private String createdOn;
     private LocationDto location;
-    private boolean requestModeration;
+    private Boolean requestModeration;
     private String publishedOn;
     private Long views;
 }

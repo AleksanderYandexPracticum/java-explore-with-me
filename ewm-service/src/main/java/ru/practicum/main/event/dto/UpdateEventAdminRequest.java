@@ -35,12 +35,12 @@ public class UpdateEventAdminRequest {
 
     private Location location;
 
-    private boolean paid;
+    private Boolean paid;
 
    // @Positive
     private Integer participantLimit;
 
-    private boolean requestModeration;
+    private Boolean requestModeration;
 
     private String stateAction;
 

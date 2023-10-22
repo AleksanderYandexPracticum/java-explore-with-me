@@ -7,5 +7,5 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventRepositoryCustom {
-    List<Event> searchWithParametrs(String state, List<Long> category, boolean paid, LocalDateTime timeStart, LocalDateTime timeEnd, String text, Pageable pageable);
+    List<Event> searchWithParametrs(String state, List<Long> category, Boolean paid, LocalDateTime timeStart, LocalDateTime timeEnd, String text, Pageable pageable);
 }

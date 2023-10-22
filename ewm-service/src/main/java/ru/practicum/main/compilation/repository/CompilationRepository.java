@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface CompilationRepository extends JpaRepository<Compilation, Long> {
 
-    List<Compilation> getCompilationByPinnedIs(boolean pinned, Pageable pageable);
+    List<Compilation> getCompilationByPinnedIs(Boolean pinned, Pageable pageable);
 
     Compilation getCompilationById(Long compId);
 

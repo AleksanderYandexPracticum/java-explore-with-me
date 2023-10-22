@@ -69,7 +69,7 @@ public class ParticipationServiceImpl implements ParticipationService {
                 .requester(userId)
                 .build();
 
-        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
             participationRequest.setStatus(Status.CONFIRMED);
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventRepository.save(event);

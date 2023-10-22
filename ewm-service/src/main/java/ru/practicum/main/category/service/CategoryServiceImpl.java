@@ -50,7 +50,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryDto updateCategoryAdmin(Long catId, NewCategoryDto newCategoryDto) {
-        if (categoryRepository.getReferenceById(catId) == null) {
+        if (categoryRepository.findCategoryById(catId) == null) {
             throw new NotFoundException("The required object was not found.");
         }
         Category newCategory = CategoryMapper.toCategory(newCategoryDto);
@@ -62,14 +62,8 @@ public class CategoryServiceImpl implements CategoryService {
             log.info("Duplicate of the categrory name");
             throw new DuplicateNameException("Duplicate of the categrory name");
         }
-//        if (categoryDto == null) {
-//            throw new NotFoundException("The required object was not found.");
-//        }
-
         return categoryDto;
     }
-//        return CategoryMapper.toCategoryDto(categoryRepository.save(newCategory));
-//    }
 
     @Transactional
     @Override

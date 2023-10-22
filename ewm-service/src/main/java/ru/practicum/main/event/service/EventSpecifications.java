@@ -12,43 +12,62 @@ public class EventSpecifications {
         return (root, query, cb) -> cb.equal(root.get("state"), state);
     }
 
-    public static Specification<Event> isPaid(boolean paid) {
+    public static Specification<Event> isPaid(Boolean paid) {
+        if (paid == null) {
+            return null;
+        }
         return (root, query, cb) -> cb.equal(root.get("paid"), paid);
     }
 
     public static Specification<Event> periodTimeStart(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
+
         if (startTime == null || endTime == null) {
-            return (root, query, cb) -> cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
+            return (root, query, cb) -> {
+                return cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
+            };
         }
         return (root, query, cb) -> {
+            // Expression<Timestamp> localDateTimeExpression = cb.literal(Timestamp.valueOf(startTime));
             return cb.and(cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), startTime));
         };
     }
 
     public static Specification<Event> periodTimeEnd(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
         if (startTime == null || endTime == null) {
-            return (root, query, cb) -> cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
+            return (root, query, cb) -> {
+                return cb.greaterThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), timeNow);
+            };
         }
         return (root, query, cb) -> {
-            return cb.and(cb.lessThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), endTime));//cb.literal(endTime)
+            //Expression<Timestamp> localDateTimeExpression = cb.literal(Timestamp.valueOf(endTime));
+            return cb.lessThan(root.<LocalDateTime>get("eventDate").as(LocalDateTime.class), endTime);
         };
     }
 
-    public static Specification<Event> betweenTimeEnd(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
+    public static Specification<Event> betweenNullTimeNow(LocalDateTime startTime, LocalDateTime endTime, LocalDateTime timeNow) {
+        if (startTime != null || endTime != null) {
+            return null;
+        }
+        return (root, query, cb) -> cb.greaterThan(root.get("eventDate"), timeNow);
+    }
+
+    public static Specification<Event> betweenTimeStartEnd(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null || endTime == null) {
-            return (root, query, cb) -> cb.greaterThan(root.get("eventDate"), timeNow);
+            return null;
         }
         return (root, query, cb) -> cb.between(root.get("eventDate"), startTime, endTime);
     }
 
-    public static Specification<Event> isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(boolean onlyAvailable) {
+    public static Specification<Event> isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(
+            boolean onlyAvailable) {
         if (!onlyAvailable) {
             return null;
         }
         return (root, query, cb) -> cb.equal(root.get("participantLimit"), 0);
     }
 
-    public static Specification<Event> isOnlyAvailableParticipantLimitGreaterConfirmedRequest(boolean onlyAvailable) {
+    public static Specification<Event> isOnlyAvailableParticipantLimitGreaterConfirmedRequest(
+            boolean onlyAvailable) {
         if (!onlyAvailable) {
             return null;
         }

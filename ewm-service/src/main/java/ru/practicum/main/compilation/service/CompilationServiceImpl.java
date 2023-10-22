@@ -38,12 +38,17 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Transactional
     @Override
-    public List<CompilationDto> getCompilationsPublic(boolean pinned, Integer from, Integer size) {
+    public List<CompilationDto> getCompilationsPublic(Boolean pinned, Integer from, Integer size) {
 
         Integer pageNumber = from / size;
         Pageable pageable = PageRequest.of(pageNumber, size);
+        if (pinned != null) {
+            return compilationRepository.getCompilationByPinnedIs(pinned, pageable).stream()
+                    .map((compilation) -> CompilationMapper.toCompilationDto(compilation))
+                    .collect(Collectors.toList());
+        }
 
-        return compilationRepository.getCompilationByPinnedIs(pinned, pageable).stream()
+        return compilationRepository.findAll(pageable).stream()
                 .map((compilation) -> CompilationMapper.toCompilationDto(compilation))
                 .collect(Collectors.toList());
     }

@@ -2,6 +2,7 @@ package ru.practicum.main.controllers.pub;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +17,9 @@ import ru.practicum.main.event.service.EventServiceImpl;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Slf4j
 @RestController
@@ -37,10 +40,15 @@ public class EventPublicController {
     public List<EventShortDto> getEventsAndStatsPublic(HttpServletRequest request,
                                                        @RequestParam(required = false) String text,
                                                        @RequestParam(required = false) List<Long> categories,
-                                                       @RequestParam(required = false) boolean paid,
-                                                       @RequestParam(required = false) String rangeStart,
-                                                       @RequestParam(required = false) String rangeEnd,
-                                                       @RequestParam(defaultValue = "false") boolean onlyAvailable,
+                                                       @RequestParam(required = false) Boolean paid,
+
+                                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                                                       @RequestParam(required = false) LocalDateTime rangeStart,
+
+                                                       @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                                                       @RequestParam(required = false) LocalDateTime rangeEnd,
+
+                                                       @RequestParam(defaultValue = "false") Boolean onlyAvailable,
                                                        @RequestParam(required = false) String sort,
                                                        @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                                        @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {

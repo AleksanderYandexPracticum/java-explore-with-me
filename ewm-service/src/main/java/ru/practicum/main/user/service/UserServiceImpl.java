@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
         User user = UserMapper.toUser(newUserRequest);
         UserDto userDto;
         try {
-            userDto = UserMapper.toUserDto(userRepository.save(user));
+            userDto = UserMapper.toUserDto(userRepository.saveAndFlush(user));
         } catch (DataIntegrityViolationException e) {
             log.info("Duplicate of the user's email address");
             throw new DuplicateEmailException(e.getMessage());

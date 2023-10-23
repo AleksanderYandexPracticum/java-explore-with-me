@@ -6,8 +6,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - "/etc/timezone:/etc/timezone:ro"       # для синхронизации времени контейнера с хостом(локальной машиной)
-      - "/etc/localtime:/etc/localtime:ro"    # для синхронизации времени контейнера с хостом(локальной машиной)
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
     depends_on:
       - stats-db
     environment:

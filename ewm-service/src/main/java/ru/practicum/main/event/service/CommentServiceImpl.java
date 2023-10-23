@@ -93,21 +93,18 @@ public class CommentServiceImpl implements CommentService {
 
     private void validateIdUser(Long userId) {
         if (!userRepository.existsById(userId)) {
-            log.info("There is no such owner ID");
             throw new NotFoundException(String.format("There is no such user ID № %s", userId));
         }
     }
 
     private void validateIdEvent(Long eventId) {
         if (!eventRepository.existsById(eventId)) {
-            log.info("There is no such identifier");
             throw new NotFoundException(String.format("There is no such identifier № %s", eventId));
         }
     }
 
     private void validateIdEventAndIdUser(Long commentId, Long userId) {
         if (!commentRepository.getCommentById(commentId).getAuthor().getId().equals(userId)) {
-            log.info(String.format("Owner  № %s doesn't have an comment with an ID  № %s", userId, commentId));
             throw new NotFoundException(String.format("Owner  № %s doesn't have an comment with an ID  № %s", userId, commentId));
         }
     }

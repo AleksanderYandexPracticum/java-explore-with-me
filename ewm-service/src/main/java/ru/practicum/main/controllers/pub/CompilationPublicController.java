@@ -42,7 +42,6 @@ public class CompilationPublicController {
     }
 
     @GetMapping("/{compId}")
-
     public CompilationDto getCompilationByIdPublic(HttpServletRequest request,
                                                    @Positive @PathVariable Long compId) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",

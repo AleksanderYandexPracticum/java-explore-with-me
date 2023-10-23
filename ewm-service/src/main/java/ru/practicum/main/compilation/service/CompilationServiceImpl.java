@@ -111,8 +111,6 @@ public class CompilationServiceImpl implements CompilationService {
         compilation.setId(compId);
 
 
-        CompilationDto compilationDto = CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
-
-        return compilationDto;
+        return CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
     }
 }

@@ -37,14 +37,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto addCategoryAdmin(NewCategoryDto newCategoryDto) {
         Category category = CategoryMapper.toCategory(newCategoryDto);
-        CategoryDto categoryDto;
         try {
-            categoryDto = CategoryMapper.toCategoryDto(categoryRepository.save(category));
+            return CategoryMapper.toCategoryDto(categoryRepository.save(category));
         } catch (DataIntegrityViolationException e) {
             log.info("Duplicate of the categrory name");
             throw new DuplicateNameException("Duplicate of the categrory name");
         }
-        return categoryDto;
     }
 
     @Transactional
@@ -74,11 +72,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (eventRepository.findFirstByCategoryId(catId) != null) {
             throw new ValidationExceptionFindCategory("The category is not empty");
         }
-//        categoryRepository.removeCategoryById(catId);
         categoryRepository.deleteCategoryById(catId);
-//        if (deleteCategory == null) {
-//            throw new NotFoundException("The required object was not found.");
-//        }
     }
 
 

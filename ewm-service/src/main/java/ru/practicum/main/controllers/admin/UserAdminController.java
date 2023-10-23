@@ -62,8 +62,7 @@ public class UserAdminController {
     @DeleteMapping("/{userId}")
     public void deleteUser(HttpServletRequest request,
                            @NonNull @Positive @PathVariable("userId") Long userId) {
-        log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
-                request.getMethod(), request.getRequestURI(), request.getQueryString());
+        log.info("deleting user,  id: " + userId);
         userService.deleteUserAdmin(userId);
 
     }

@@ -45,15 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//import static ru.practicum.main.event.service.EventSpecifications.betweenNullTimeNow;
-//import static ru.practicum.main.event.service.EventSpecifications.betweenTimeStartEnd;
-//import static ru.practicum.main.event.service.EventSpecifications.isCategory;
-//import static ru.practicum.main.event.service.EventSpecifications.isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest;
-//import static ru.practicum.main.event.service.EventSpecifications.isOnlyAvailableParticipantLimitGreaterConfirmedRequest;
-//import static ru.practicum.main.event.service.EventSpecifications.isPaid;
-//import static ru.practicum.main.event.service.EventSpecifications.isSort;
-//import static ru.practicum.main.event.service.EventSpecifications.isTextAnnotation;
-//import static ru.practicum.main.event.service.EventSpecifications.isTextDescription;
 
 
 @Slf4j
@@ -470,38 +461,6 @@ public class EventServiceImpl implements EventService {
                 throw new IllegalArgumentException("Time start" + rangeStart + " after end " + rangeEnd);
             }
         }
-//        rangeStart = LocalDateTime.from(rangeStart);
-//        rangeEnd = LocalDateTime.from(rangeEnd);
-
-//        Specification<Event> specBetween = Specification.where(EventSpecifications
-//                .isState(State.PUBLISHED))
-//                .and(isPaid(paid))
-//                .and(betweenNullTimeNow(rangeStart, rangeEnd, timeNow))
-//                .and(betweenTimeStartEnd(rangeStart, rangeEnd))
-//                .and(Specification
-//                        .where(isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(onlyAvailable))
-//                        .or(isOnlyAvailableParticipantLimitGreaterConfirmedRequest(onlyAvailable)))
-//                .and(isSort(sort))
-//                .and(isCategory(categories))
-//                .and(Specification
-//                        .where(isTextAnnotation(text))
-//                        .or(isTextDescription(text)));
-
-        //   List<Event> list = eventRepository.findAll(specBetween, pageable).toList();
-
-//        Specification<Event> spec = Specification.where(EventSpecifications
-//                .isState(State.PUBLISHED))
-//                .and(isPaid(paid))
-//                .and(periodTimeStart(rangeStart, rangeEnd, timeNow))
-//                .and(periodTimeEnd(rangeStart, rangeEnd, timeNow))
-//                .and(Specification
-//                        .where(isOnlyAvailableEqualsParticipantLimitAndConfirmedRequest(onlyAvailable))
-//                        .or(isOnlyAvailableParticipantLimitGreaterConfirmedRequest(onlyAvailable)))
-//                .and(isSort(sort))
-//                .and(isCategory(categories))
-//                .and(Specification
-//                        .where(isTextAnnotation(text))
-//                        .or(isTextDescription(text)));
 
         List<Event> list;
         if (text != null) {

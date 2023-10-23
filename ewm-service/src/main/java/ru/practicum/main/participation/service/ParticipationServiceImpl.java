@@ -42,15 +42,15 @@ public class ParticipationServiceImpl implements ParticipationService {
         if (userRepository.getUserById(userId) == null) {
             throw new NotFoundException("The required object was not found.");
         }
-        List<Long> eventIdList = eventRepository.getEventsByInitiatorId(userId)
+        List<Long> eventIds = eventRepository.getEventsByInitiatorId(userId)
                 .stream()
                 .map((event) -> event.getId())
                 .collect(Collectors.toList());
         List<ParticipationRequest> list;
-        if (eventIdList.size() == 0) {
+        if (eventIds.size() == 0) {
             list = participationRepository.getParticipationRequestsByRequester(userId);
         } else {
-            list = participationRepository.getParticipationRequestsByRequesterAndEventNotIn(userId, eventIdList);
+            list = participationRepository.getParticipationRequestsByRequesterAndEventNotIn(userId, eventIds);
         }
         return list.stream().map((pr) -> ParticipationMapper.toParticipationRequestDto(pr)).collect(Collectors.toList());
     }

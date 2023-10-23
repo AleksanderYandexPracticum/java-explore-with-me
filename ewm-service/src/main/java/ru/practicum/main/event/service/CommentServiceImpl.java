@@ -49,18 +49,21 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public void deleteCommentPrivate(Long commentId) {
-        if (commentRepository.findById(commentId) == null) {
-            throw new NotFoundException("The required object was not found.");
+    public void deleteCommentByIdPrivate(Long userId, Long commentId) {
+        Comment comment = validateIdComment(commentId);
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new IllegalArgumentException(String.format("There is no such comment to User ID № %s", userId));
         }
         commentRepository.deleteById(commentId);
     }
 
     @Transactional
     @Override
-    public CommentDto updateCommentPrivate(Long eventId, Long userId, CommentDto commentDto) {
-        validateIdEventAndIdUser(commentDto.getId(), userId);
-        Comment oldComment = commentRepository.getCommentById(commentDto.getId());
+    public CommentDto updateCommentPrivate(Long eventId, Long userId, Long commentId, CommentDto commentDto) {
+        validateIdUser(userId);
+        validateIdEvent(eventId);
+        validateIdEventAndIdUser(commentId, userId);
+        Comment oldComment = validateIdComment(commentId);
 
         Event event = commentDto.getEvent() == null ? eventRepository.getEventsById(eventId) : commentDto.getEvent();
         User user = commentDto.getAuthor() == null ? userRepository.getUserById(userId) : commentDto.getAuthor();
@@ -82,30 +85,74 @@ public class CommentServiceImpl implements CommentService {
         Integer pageNumber = from / size;
         Pageable pageable = PageRequest.of(pageNumber, size);
 
-        List<CommentDto> commentDtos = commentRepository.getCommentByEventId(eventId, pageable).stream()
+        List<CommentDto> commentsDto = commentRepository.getCommentByEventId(eventId, pageable).stream()
                 .map(comment -> CommentMapper.toCommentDto(comment))
                 .collect(Collectors.toList());
-        if (commentDtos.size() == 0) {
+        if (commentsDto.size() == 0) {
             throw new NotFoundException(String.format("There is no such comment for Event ID № %s", eventId));
         }
-        return commentDtos;
+        return commentsDto;
     }
+
+    @Transactional
+    @Override
+    public CommentDto getCommentByIdPrivate(Long commentId) {
+        Comment comment = validateIdComment(commentId);
+        return CommentMapper.toCommentDto(comment);
+    }
+
+    @Transactional
+    @Override
+    public void deleteCommentByIdAdmin(Long userId, Long commentId) {
+        validateIdComment(commentId);
+        commentRepository.deleteById(commentId);
+    }
+
+    @Transactional
+    @Override
+    public CommentDto updateCommentAdmin(Long eventId, Long userId, CommentDto commentDto) {
+        Comment oldComment = validateIdComment(commentDto.getId());
+
+        Event event = commentDto.getEvent() == null ? eventRepository.getEventsById(eventId) : commentDto.getEvent();
+        User user = commentDto.getAuthor() == null ? userRepository.getUserById(userId) : commentDto.getAuthor();
+
+        Comment upComment = CommentMapper.toComment(commentDto, user, event);
+
+        upComment.setId(oldComment.getId());
+        upComment.setText((upComment.getText() == null || upComment.getText().isBlank()) ? oldComment.getText() : upComment.getText());
+        upComment.setCreated(upComment.getCreated() == null ? oldComment.getCreated() : upComment.getCreated());
+
+        return CommentMapper.toCommentDto(commentRepository.save(upComment));
+    }
+
 
     private void validateIdUser(Long userId) {
         if (!userRepository.existsById(userId)) {
+            log.info("There is no such owner ID");
             throw new NotFoundException(String.format("There is no such user ID № %s", userId));
         }
     }
 
+    private Comment validateIdComment(Long commentId) {
+        Comment comment = commentRepository.getCommentById(commentId);
+        if (comment == null) {
+            log.info("There is no such comment ID");
+            throw new NotFoundException(String.format("There is no such comment ID № %s", commentId));
+        }
+        return comment;
+    }
+
     private void validateIdEvent(Long eventId) {
         if (!eventRepository.existsById(eventId)) {
+            log.info("There is no such identifier");
             throw new NotFoundException(String.format("There is no such identifier № %s", eventId));
         }
     }
 
     private void validateIdEventAndIdUser(Long commentId, Long userId) {
         if (!commentRepository.getCommentById(commentId).getAuthor().getId().equals(userId)) {
-            throw new NotFoundException(String.format("Owner  № %s doesn't have an comment with an ID  № %s", userId, commentId));
+            log.info(String.format("Owner  № %s doesn't have an comment with an ID  № %s", userId, commentId));
+            throw new NotFoundException(String.format("User  № %s doesn't have an comment with an ID  № %s", userId, commentId));
         }
     }
 

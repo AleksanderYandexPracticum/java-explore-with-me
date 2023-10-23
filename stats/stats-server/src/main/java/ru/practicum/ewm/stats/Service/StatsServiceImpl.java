@@ -47,6 +47,9 @@ public class StatsServiceImpl implements StatsService {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        if (endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("End before start");
+        }
 
         List<ViewStats> list = null;
 

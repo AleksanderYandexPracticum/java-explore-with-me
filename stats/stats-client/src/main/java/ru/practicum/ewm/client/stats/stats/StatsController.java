@@ -22,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 public class StatsController {
     private final StatsClient statsClient;
 
-
     @PostMapping("/hit")
     public ResponseEntity<Object> addUser(HttpServletRequest request,
                                           @RequestBody EndpointHitDto endpointHitDto) {

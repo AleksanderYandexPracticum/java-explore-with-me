@@ -7,9 +7,15 @@ import java.util.List;
 public interface CommentService {
     CommentDto addCommentPrivate(Long userId, Long eventId, CommentDto commentDto);
 
-    void deleteCommentPrivate(Long commentId);
+    void deleteCommentByIdPrivate(Long userId, Long commentId);
 
-    CommentDto updateCommentPrivate(Long eventId, Long userId, CommentDto commentDto);
+    CommentDto updateCommentPrivate(Long eventId, Long userId, Long commentId, CommentDto commentDto);
 
     List<CommentDto> getCommentsPrivate(Long eventId, Integer from, Integer size);
+
+    CommentDto getCommentByIdPrivate(Long commentId);
+
+    void deleteCommentByIdAdmin(Long userId, Long commentId);
+
+    CommentDto updateCommentAdmin(Long userId, Long eventId, CommentDto commentDto);
 }

@@ -35,11 +35,11 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentDto addCommentPrivate(Long userId, Long eventId, CommentDto commentDto) {
-        validateIdUser(userId);
-        validateIdEvent(eventId);
-        Event event = eventRepository.getEventsById(eventId);
-        User user = userRepository.getUserById(userId);
+    public CommentDto addCommentPrivate(CommentDto commentDto) {
+        validateIdUser(commentDto.getAuthor());
+        validateIdEvent(commentDto.getEvent());
+        Event event = eventRepository.getEventsById(commentDto.getEvent());
+        User user = userRepository.getUserById(commentDto.getAuthor());
 
         Comment comment = CommentMapper.toComment(commentDto, user, event);
 
@@ -59,14 +59,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentDto updateCommentPrivate(Long eventId, Long userId, Long commentId, CommentDto commentDto) {
-        validateIdUser(userId);
-        validateIdEvent(eventId);
-        validateIdEventAndIdUser(commentId, userId);
+    public CommentDto updateCommentPrivate(Long commentId, CommentDto commentDto) {
+        validateIdUser(commentDto.getAuthor());
+        validateIdEvent(commentDto.getEvent());
+        validateIdEventAndIdUser(commentId, commentDto.getAuthor());
         Comment oldComment = validateIdComment(commentId);
 
-        Event event = commentDto.getEvent() == null ? eventRepository.getEventsById(eventId) : commentDto.getEvent();
-        User user = commentDto.getAuthor() == null ? userRepository.getUserById(userId) : commentDto.getAuthor();
+        Event event = eventRepository.getEventsById(oldComment.getEvent().getId());
+        User user = userRepository.getUserById(oldComment.getAuthor().getId());
 
         Comment upComment = CommentMapper.toComment(commentDto, user, event);
 
@@ -110,11 +110,11 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional
     @Override
-    public CommentDto updateCommentAdmin(Long eventId, Long userId, CommentDto commentDto) {
-        Comment oldComment = validateIdComment(commentDto.getId());
+    public CommentDto updateCommentAdmin(Long commentId, CommentDto commentDto) {
+        Comment oldComment = validateIdComment(commentId);
 
-        Event event = commentDto.getEvent() == null ? eventRepository.getEventsById(eventId) : commentDto.getEvent();
-        User user = commentDto.getAuthor() == null ? userRepository.getUserById(userId) : commentDto.getAuthor();
+        Event event = eventRepository.getEventsById(oldComment.getEvent().getId());
+        User user = userRepository.getUserById(oldComment.getAuthor().getId());
 
         Comment upComment = CommentMapper.toComment(commentDto, user, event);
 

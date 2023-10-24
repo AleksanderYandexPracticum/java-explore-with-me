@@ -21,7 +21,7 @@ import javax.validation.constraints.Positive;
 
 @Slf4j
 @RestController
-@RequestMapping(path = "/admin/users")
+@RequestMapping(path = "/admin")
 @Validated
 public class CommentAdminController {
 
@@ -34,7 +34,7 @@ public class CommentAdminController {
 
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{userId}/comment/{commentId}")
+    @DeleteMapping("/users/{userId}/comments/{commentId}")
     public void deleteUserAdmin(HttpServletRequest request,
                                 @Positive @PathVariable Long userId,
                                 @Positive @PathVariable Long commentId) {
@@ -45,14 +45,13 @@ public class CommentAdminController {
 
     }
 
-    @PatchMapping("/{userId}/events/{eventId}")
+    @PatchMapping("/comments/{commentId}")
     public CommentDto updateCommentAdmin(HttpServletRequest request,
-                                         @Positive @PathVariable Long userId,
-                                         @Positive @PathVariable Long eventId,
+                                         @Positive @PathVariable Long commentId,
                                          @Valid @RequestBody CommentDto commentDto) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Update comment status with userId={} and eventId={}", userId, eventId);
-        return commentService.updateCommentAdmin(userId, eventId, commentDto);
+        log.info("Update comment  status with commentId={} ", commentId);
+        return commentService.updateCommentAdmin(commentId, commentDto);
     }
 }

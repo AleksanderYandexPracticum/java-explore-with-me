@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +26,6 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(path = "/users")
 @Validated
 public class CommentPrivateController {
 
@@ -39,45 +37,53 @@ public class CommentPrivateController {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/users/{userId}/events/{eventId}")
+    @PostMapping("/comments")
     public CommentDto addComment(HttpServletRequest request,
-                                 @Positive @PathVariable Long userId,
-                                 @Positive @PathVariable Long eventId,
                                  @NonNull @RequestBody CommentDto commentDto) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        return commentService.addCommentPrivate(userId, eventId, commentDto);
+        return commentService.addCommentPrivate(commentDto);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/comment/{commentId}")
+    @DeleteMapping("/users/{userId}/comments/{commentId}")
     public void deleteUser(HttpServletRequest request,
-                           @NonNull @Positive @PathVariable("Id") Long commentId) {
+                           @Positive @PathVariable Long userId,
+                           @Positive @PathVariable Long commentId) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        commentService.deleteCommentPrivate(commentId);
+
+        commentService.deleteCommentByIdPrivate(userId, commentId);
 
     }
 
-    @PatchMapping("/users/{userId}/events/{eventId}")
+    @PatchMapping("/comments/{commentId}")
     public CommentDto updateCommentPrivate(HttpServletRequest request,
-                                           @Positive @PathVariable Long userId,
-                                           @Positive @PathVariable Long eventId,
+                                           @Positive @PathVariable Long commentId,
                                            @Valid @RequestBody CommentDto commentDto) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Update request status with userId={} and eventId={}", userId, eventId);
-        return commentService.updateCommentPrivate(eventId, userId, commentDto);
+        log.info("Update comment  status with commentId={} ", commentId);
+        return commentService.updateCommentPrivate(commentId, commentDto);
     }
 
-    @GetMapping
+    @GetMapping("/events/{eventId}/comments")
     public List<CommentDto> getComments(HttpServletRequest request,
-                                        @RequestParam(required = false) Long eventId,
+                                        @PathVariable Long eventId,
                                         @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                         @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
                 request.getMethod(), request.getRequestURI(), request.getQueryString());
-        log.info("Get user with userId={}, from={}, size={}", eventId, from, size);
+        log.info("Get comments by event eventId={}, from={}, size={}", eventId, from, size);
         return commentService.getCommentsPrivate(eventId, from, size);
+    }
+
+    @GetMapping("/comments/{commentId}")
+    public CommentDto getCommentById(HttpServletRequest request,
+                                     @Positive @PathVariable Long commentId) {
+        log.info("Request to the endpoint was received: '{} {}', string of request parameters: '{}'",
+                request.getMethod(), request.getRequestURI(), request.getQueryString());
+        log.info("Get comment by Id ={}", commentId);
+        return commentService.getCommentByIdPrivate(commentId);
     }
 }

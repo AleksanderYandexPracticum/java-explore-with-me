@@ -14,8 +14,8 @@ public class CommentMapper {
         return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
-                .event(comment.getEvent())
-                .author(comment.getAuthor())
+                .event(comment.getEvent().getId())
+                .author(comment.getAuthor().getId())
                 .created(comment.getCreated().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();
     }

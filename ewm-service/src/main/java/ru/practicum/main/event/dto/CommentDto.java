@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.main.event.model.Event;
-import ru.practicum.main.user.model.User;
 
 
 @Getter
@@ -16,7 +14,7 @@ public class CommentDto {
 
     private Long id;
     private String text;
-    private Event event;
-    private User author;
+    private Long event;
+    private Long author;
     private String created;
 }
